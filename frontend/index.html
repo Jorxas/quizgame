@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Game API Test & MQTT Testing</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <script defer src="./app.js"></script>
+    <script defer src="./mqtt-testing.js"></script>
+  </head>
+  <body>
+    <div class="container mt-5">
+      <h1 class="text-center thm-dark-green p-3">Game API Test</h1>
+
+      <div class="card thm-light-green mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Create Object</h5>
+          <form id="create-form">
+            <div class="mb-3">
+              <label for="create-message" class="form-label">Message</label>
+              <input
+                type="text"
+                class="form-control"
+                id="create-message"
+                required
+              />
+            </div>
+            <button type="submit" class="btn thm-green">Create</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="card thm-light-green mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Update Object</h5>
+          <form id="update-form">
+            <div class="mb-3">
+              <label for="update-id" class="form-label">ID</label>
+              <input
+                type="number"
+                class="form-control"
+                id="update-id"
+                required
+              />
+            </div>
+            <div class="mb-3">
+              <label for="update-message" class="form-label">Message</label>
+              <input
+                type="text"
+                class="form-control"
+                id="update-message"
+                required
+              />
+            </div>
+            <button type="submit" class="btn thm-green">Update</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="card thm-light-green mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Delete Object</h5>
+          <form id="delete-form">
+            <div class="mb-3">
+              <label for="delete-id" class="form-label">ID</label>
+              <input
+                type="number"
+                class="form-control"
+                id="delete-id"
+                required
+              />
+            </div>
+            <button type="submit" class="btn thm-green">Delete</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="card thm-light-green mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Objects</h5>
+          <button class="btn thm-green mb-3" id="fetch-objects">
+            Fetch Objects
+          </button>
+          <ul id="objects-list" class="list-group"></ul>
+        </div>
+      </div>
+
+      <div class="card thm-light-green mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Webcontroller</h5>
+          <button class="btn thm-green mb-3" id="open-webcontroller">
+            Open Webcontroller
+          </button>
+        </div>
+      </div>
+
+      <div class="card thm-light-green mb-3">
+        <div class="card-body">
+          <h5 class="card-title">MQTT Test Area</h5>
+
+          <div class="mb-3">
+            <label for="mqtt-broker" class="form-label">MQTT Broker URL</label>
+            <input
+              type="text"
+              class="form-control"
+              id="mqtt-broker"
+              value="ws://localhost:9001"
+              required
+            />
+          </div>
+
+          <div class="mb-3">
+            <label for="mqtt-username" class="form-label"
+              >Username (optional)</label
+            >
+            <input
+              type="text"
+              class="form-control"
+              id="mqtt-username"
+              value="your_mqtt_username"
+            />
+          </div>
+
+          <div class="mb-3">
+            <label for="mqtt-password" class="form-label"
+              >Password (optional)</label
+            >
+            <input
+              type="password"
+              class="form-control"
+              id="mqtt-password"
+              value="your_mqtt_password"
+            />
+          </div>
+
+          <button class="btn thm-dark-green mb-3" id="mqtt-connect-btn">
+            Connect MQTT
+          </button>
+          <button class="btn btn-danger mb-3" id="mqtt-disconnect-btn">
+            Disconnect MQTT
+          </button>
+
+          <hr />
+
+          <div class="mb-3">
+            <label for="mqtt-topic" class="form-label">MQTT Topic</label>
+            <input
+              type="text"
+              class="form-control"
+              id="mqtt-topic"
+              placeholder="z.B. test/topic"
+              required
+            />
+          </div>
+
+          <div class="mb-3">
+            <label for="mqtt-message" class="form-label">Message</label>
+            <input
+              type="text"
+              class="form-control"
+              id="mqtt-message"
+              placeholder="Nachricht eingeben"
+              required
+            />
+          </div>
+
+          <button class="btn thm-green mb-3" id="mqtt-publish-btn">
+            Publish Message
+          </button>
+
+          <h6>Received Messages:</h6>
+          <div
+            id="mqtt-messages-box"
+            class="border rounded p-2"
+            style="height: 200px; overflow-y: scroll; background-color: #f5f5f5"
+          ></div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
