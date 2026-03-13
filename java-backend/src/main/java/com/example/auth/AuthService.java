@@ -15,4 +15,9 @@ public class AuthService {
     public void register(String username, String password, Handler<AsyncResult<Void>> resultHandler) {
         authRepository.insertUser(username, password, resultHandler);
     }
+
+    /** Prüft Login und gibt true zurück wenn gültig. */
+    public void login(String username, String password, Handler<AsyncResult<Boolean>> resultHandler) {
+        authRepository.verifyUser(username, password, resultHandler);
+    }
 }
