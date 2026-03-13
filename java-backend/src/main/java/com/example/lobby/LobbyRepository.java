@@ -21,7 +21,8 @@ public class LobbyRepository {
                 "JOIN game_sessions gs ON gs.id = gsp.game_session_id " +
                 "JOIN users u ON u.id = gsp.user_id " +
                 "WHERE gs.state = 'LOBBY' AND gs.id = (SELECT MAX(id) FROM game_sessions WHERE state = 'LOBBY') " +
-                "AND u.username = ? LIMIT 1";
+                "AND u.username = ? LIMIT 1"
+                ;
         jdbcPool.preparedQuery(sql).execute(Tuple.of(username), ar -> {
             if (ar.failed()) {
                 resultHandler.handle(Future.failedFuture(ar.cause()));
