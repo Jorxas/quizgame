@@ -5,6 +5,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.example.auth.AuthController;
 import com.example.database.DatabaseClient;
 import com.example.game.GameStateManager;
 import com.example.http.HttpController;
@@ -55,6 +56,7 @@ public class MainVerticle extends AbstractVerticle {
     private void setupHttpVerticle(HttpServerVerticle httpVerticle) {
 
         final List<HttpController> controllers = List.of(
+                new AuthController(vertx),
                 new ObjectController(vertx)
         );
 
