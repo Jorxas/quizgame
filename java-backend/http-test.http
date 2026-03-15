@@ -1,0 +1,21 @@
+### Test Auth API
+@baseUrl = http://localhost:8080
+
+### POST /api/auth/register
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "jordan",
+  "password": "monmotdepasse",
+  "passwordRepeat": "monmotdepasse"
+}
+
+### POST /api/auth/login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "jordan",
+  "password": "monmotdepasse"
+}
