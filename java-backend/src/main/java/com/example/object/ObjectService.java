@@ -16,13 +16,13 @@ public class ObjectService {
         this.objectRepository = new ObjectRepository();
     }
 
+    /** Erstellt neues Object. */
     public void createObject(String message, Handler<AsyncResult<Void>> resultHandler) {
-        // Delegate object creation to repository
         objectRepository.insertObject(message, resultHandler);
     }
 
+    /** Liefert alle Objects. */
     public void readObjects(Handler<AsyncResult<JsonArray>> resultHandler) {
-        // Delegate reading objects to repository
         objectRepository.fetchObjects(ar -> {
             if (ar.succeeded()) {
                 RowSet<Row> resultSet = ar.result();
@@ -41,13 +41,13 @@ public class ObjectService {
         });
     }
 
+    /** Aktualisiert Object. */
     public void updateObject(int id, String message, Handler<AsyncResult<Void>> resultHandler) {
-        // Delegate object update to repository
         objectRepository.updateObject(id, message, resultHandler);
     }
 
+    /** Löscht Object. */
     public void deleteObject(int id, Handler<AsyncResult<Void>> resultHandler) {
-        // Delegate object deletion to repository
         objectRepository.deleteObject(id, resultHandler);
     }
 }
