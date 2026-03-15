@@ -19,3 +19,14 @@ Content-Type: application/json
   "username": "jordan",
   "password": "monmotdepasse"
 }
+
+### Test Controllers API
+### GET /api/controllers/available
+GET {{baseUrl}}/api/controllers/available
+
+### POST /api/controllers/create-web
+POST {{baseUrl}}/api/controllers/create-web
+Content-Type: application/json
+
+###
+### Erwartet: 201 mit JSON { "controllerId": "WEB-xxx...", "type": "WEB", "status": "FREE" }
