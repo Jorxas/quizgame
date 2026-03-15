@@ -1,0 +1,78 @@
+### Test Auth API
+@baseUrl = http://localhost:8080
+
+### POST /api/auth/register
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "jordan",
+  "password": "monmotdepasse",
+  "passwordRepeat": "monmotdepasse"
+}
+
+### POST /api/auth/login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "jordan",
+  "password": "monmotdepasse"
+}
+
+### Test Controllers API
+### GET /api/controllers/available
+GET {{baseUrl}}/api/controllers/available
+
+### POST /api/controllers/create-web
+POST {{baseUrl}}/api/controllers/create-web
+Content-Type: application/json
+
+###
+### Erwartet: 201 mit JSON { "controllerId": "WEB-xxx...", "type": "WEB", "status": "FREE" }
+
+### Test Lobby API
+### POST /api/lobby/create
+POST {{baseUrl}}/api/lobby/create
+
+### GET /api/lobby/status
+GET {{baseUrl}}/api/lobby/status
+
+### POST /api/lobby/join
+POST {{baseUrl}}/api/lobby/join
+Content-Type: application/json
+
+{
+  "username": "jordan"
+}
+
+### Test Player API
+### POST /api/players/bind – Controller an Spieler binden
+### Voraussetzung: User registriert, Controller erstellt (create-web)
+POST {{baseUrl}}/api/players/bind
+Content-Type: application/json
+
+{
+  "username": "jordan",
+  "controllerId": "WEB-xxxxxxxxxxxx",
+  "controllerType": "WEB"
+}
+
+### Test Objects API
+### POST /api/objects
+POST {{baseUrl}}/api/objects
+Content-Type: text/plain
+
+Hallo Welt
+
+### GET /api/objects
+GET {{baseUrl}}/api/objects
+
+### PUT /api/objects/1
+PUT {{baseUrl}}/api/objects/1
+Content-Type: text/plain
+
+Geänderte Nachricht
+
+### DELETE /api/objects/1
+DELETE {{baseUrl}}/api/objects/1
