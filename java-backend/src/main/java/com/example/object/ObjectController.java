@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import com.example.http.HttpController;
 
 import io.vertx.core.Vertx;
-import io.vertx.core.eventbus.EventBus;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 
@@ -14,13 +13,12 @@ public class ObjectController implements HttpController {
 
     private static final Logger logger = LoggerFactory.getLogger(ObjectController.class);
     private final ObjectService objectService;
-    private final EventBus eventBus;
 
     public ObjectController(Vertx vertx) {
-        this.eventBus = vertx.eventBus();
         this.objectService = new ObjectService();
     }
 
+    /** Registriert die Object-Routen. */
     public void registerRoutes(Router router) {
         router.post("/api/objects").handler(this::handleCreate);
         router.get("/api/objects").handler(this::handleRead);
@@ -28,6 +26,7 @@ public class ObjectController implements HttpController {
         router.delete("/api/objects/:id").handler(this::handleDelete);
     }
 
+    /** Erstellt neues Object (POST /api/objects). */
     private void handleCreate(RoutingContext ctx) {
         String name = ctx.body().asString();
 
@@ -37,11 +36,6 @@ public class ObjectController implements HttpController {
             if (res.succeeded()) {
                 ctx.response().setStatusCode(201).end("Object created and saved in DB.");
                 logger.debug("Created object in database");
-
-                // Publish the created object to the event bus
-                eventBus.publish("object.created", name);
-
-                logger.info("Event published: object.created with name: {}", name);
             } else {
                 ctx.response()
                         .setStatusCode(500)
@@ -52,6 +46,7 @@ public class ObjectController implements HttpController {
 
     }
 
+    /** Liefert alle Objects (GET /api/objects). */
     private void handleRead(RoutingContext ctx) {
         // Call service to read objects
         objectService.readObjects(res -> {
@@ -67,6 +62,7 @@ public class ObjectController implements HttpController {
         });
     }
 
+    /** Aktualisiert Object (PUT /api/objects/:id). */
     private void handleUpdate(RoutingContext ctx) {
         int id = Integer.parseInt(ctx.pathParam("id"));
         String message = ctx.body().asString();
@@ -84,6 +80,7 @@ public class ObjectController implements HttpController {
         });
     }
 
+    /** Löscht Object (DELETE /api/objects/:id). */
     private void handleDelete(RoutingContext ctx) {
         int id = Integer.parseInt(ctx.pathParam("id"));
         logger.debug("Received request to delete object with id: {}", id);
