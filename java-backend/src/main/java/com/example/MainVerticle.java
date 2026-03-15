@@ -11,6 +11,7 @@ import com.example.lobby.LobbyController;
 import com.example.player.PlayerController;
 import com.example.database.DatabaseClient;
 import com.example.game.GameController;
+import com.example.highscores.HighscoresController;
 import com.example.game.GameStateManager;
 import com.example.http.HttpController;
 import com.example.http.HttpServerVerticle;
@@ -65,6 +66,7 @@ public class MainVerticle extends AbstractVerticle {
                 new LobbyController(vertx),
                 new PlayerController(vertx),
                 new GameController(vertx),
+                new HighscoresController(vertx),
                 new ObjectController(vertx)
         );
 
