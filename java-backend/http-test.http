@@ -90,3 +90,10 @@ Content-Type: application/json
 
 ### POST /api/game/start – alle Spieler müssen ready sein
 POST {{baseUrl}}/api/game/start
+
+### Test Highscores API
+### GET /api/highscores/:mode – mode=5|10|20, optional ?limit=20
+GET {{baseUrl}}/api/highscores/10
+GET {{baseUrl}}/api/highscores/10?limit=5
+GET {{baseUrl}}/api/highscores/5
+GET {{baseUrl}}/api/highscores/20
