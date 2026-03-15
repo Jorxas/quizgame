@@ -45,3 +45,34 @@ Content-Type: application/json
 {
   "username": "jordan"
 }
+
+### Test Player API
+### POST /api/players/bind – Controller an Spieler binden
+### Voraussetzung: User registriert, Controller erstellt (create-web)
+POST {{baseUrl}}/api/players/bind
+Content-Type: application/json
+
+{
+  "username": "jordan",
+  "controllerId": "WEB-xxxxxxxxxxxx",
+  "controllerType": "WEB"
+}
+
+### Test Objects API
+### POST /api/objects
+POST {{baseUrl}}/api/objects
+Content-Type: text/plain
+
+Hallo Welt
+
+### GET /api/objects
+GET {{baseUrl}}/api/objects
+
+### PUT /api/objects/1
+PUT {{baseUrl}}/api/objects/1
+Content-Type: text/plain
+
+Geänderte Nachricht
+
+### DELETE /api/objects/1
+DELETE {{baseUrl}}/api/objects/1
