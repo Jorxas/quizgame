@@ -30,3 +30,18 @@ Content-Type: application/json
 
 ###
 ### Erwartet: 201 mit JSON { "controllerId": "WEB-xxx...", "type": "WEB", "status": "FREE" }
+
+### Test Lobby API
+### POST /api/lobby/create
+POST {{baseUrl}}/api/lobby/create
+
+### GET /api/lobby/status
+GET {{baseUrl}}/api/lobby/status
+
+### POST /api/lobby/join
+POST {{baseUrl}}/api/lobby/join
+Content-Type: application/json
+
+{
+  "username": "jordan"
+}
