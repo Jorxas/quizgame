@@ -73,6 +73,12 @@
             <artifactId>agroal-pool</artifactId>
             <version>2.4</version>
         </dependency>
+        <!-- BCrypt pour le hachage des mots de passe -->
+        <dependency>
+            <groupId>org.mindrot</groupId>
+            <artifactId>jbcrypt</artifactId>
+            <version>0.4</version>
+        </dependency>
     </dependencies>
 
 
