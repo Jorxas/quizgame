@@ -1,54 +1,66 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="de">
   <head>
-    <meta charset="UTF-8" />
-    <title>Game Controller</title>
-    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-    <script defer type="module" src="controller.js"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Web-Controller</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="controller.css" />
-    <meta
-      name="viewport"
-      content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"
-    />
   </head>
-
-  <script src="/env.js"></script>
-  <script>
-    console.log("MQTT_BROKER_URL: ", window.__ENV__.MQTT_BROKER_URL);
-    console.log("MQTT_BROKER_PORT: ", window.__ENV__.MQTT_BROKER_PORT);
-    console.log("MQTT_USERNAME: ", window.__ENV__.MQTT_USERNAME);
-    console.log("MQTT_PASSWORD: ", window.__ENV__.MQTT_PASSWORD);
-    console.log("MQTT_MESSAGE_PREFIX: ", window.__ENV__.MQTT_MESSAGE_PREFIX);
-  </script>
   <body>
-    <h1>Webcontroller <small id="controllerId">(id)</small></h1>
-    <div class="lcd-display">
-      <div class="lcd-line"></div>
-      <div class="lcd-line"></div>
-      <div class="lcd-line"></div>
+    <div class="controller-card">
+
+      <!-- HEADER -->
+      <div class="card-header">
+        <span class="icon">📱</span>
+        <h1>Web-Controller</h1>
+      </div>
+
+      <!-- BODY -->
+      <div class="card-body">
+
+        <!-- Player info -->
+        <div class="player-info">
+          <div class="player-id" id="controllerIdDisplay">—</div>
+          <div class="player-name">Spieler: <span id="controllerPlayerDisplay">—</span></div>
+          <div class="player-status not-ready">
+            <span class="status-dot"></span>
+            <span class="status-text" id="controllerStatus">Not ready</span>
+          </div>
+          <div class="score-display" id="scoreDisplay">Score: <span id="scoreValue">0</span></div>
+        </div>
+
+        <!-- Countdown overlay -->
+        <div class="countdown-overlay" id="countdownOverlay" style="display:none;">
+          <span class="countdown-number" id="countdownNumber">3</span>
+        </div>
+
+        <!-- Result feedback -->
+        <div class="result-feedback" id="resultFeedback" style="display:none;">
+          <span id="resultIcon"></span>
+          <span id="resultText"></span>
+        </div>
+
+        <!-- Answer buttons -->
+        <div>
+          <div class="answer-grid" id="controllerAnswers">
+            <button type="button" class="answer-btn a" id="answerA">A</button>
+            <button type="button" class="answer-btn b" id="answerB">B (ready)</button>
+            <button type="button" class="answer-btn c" id="answerC">C</button>
+            <button type="button" class="answer-btn d" id="answerD">D (not ready)</button>
+          </div>
+        </div>
+
+        <!-- Hint -->
+        <div class="hint-box" id="hintBox">
+          Nach Antwort gesperrt bis zur nächsten Frage.
+        </div>
+
+      </div>
     </div>
 
-    <div class="controller-container">
-      <button
-        class="color-button green"
-        data-color="green"
-        data-tone="329"
-      ></button>
-      <button
-        class="color-button red"
-        data-color="red"
-        data-tone="261"
-      ></button>
-      <button
-        class="color-button yellow"
-        data-color="yellow"
-        data-tone="392"
-      ></button>
-      <button
-        class="color-button blue"
-        data-color="blue"
-        data-tone="195"
-      ></button>
-    </div>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <script src="env.js"></script>
+    <script src="controller.js"></script>
   </body>
 </html>
