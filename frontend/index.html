@@ -1,186 +1,260 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="de">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Game API Test & MQTT Testing</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="style.css" />
-    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-    <script defer src="./app.js"></script>
-    <script defer src="./mqtt-testing.js"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Quiz — Académique</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/styles.css" />
   </head>
-  <body>
-    <div class="container mt-5">
-      <h1 class="text-center thm-dark-green p-3">Game API Test</h1>
+  <body class="state-initial">
+    <div class="page">
+      <aside class="panel left">
+        <div class="panel-header">
+          <span class="icon">🎓</span>
+          <h1>Konfiguration</h1>
+        </div>
+        <div class="panel-body">
+          <div class="segmented" role="tablist">
+            <button class="segmented-btn is-active">Login</button>
+            <button class="segmented-btn">Registrieren</button>
+            <button class="segmented-btn">Controller</button>
+          </div>
 
-      <div class="card thm-light-green mb-3">
-        <div class="card-body">
-          <h5 class="card-title">Create Object</h5>
-          <form id="create-form">
-            <div class="mb-3">
-              <label for="create-message" class="form-label">Message</label>
-              <input
-                type="text"
-                class="form-control"
-                id="create-message"
-                required
-              />
+          <section class="left-section is-active" data-left-section="login">
+            <label class="field">
+              <span>Benutzername</span>
+              <input id="login-username" type="text" placeholder="Benutzername eingeben" />
+            </label>
+            <label class="field">
+              <span>Passwort</span>
+              <input id="login-password" type="password" placeholder="Passwort eingeben" />
+            </label>
+            <div class="row">
+              <button class="btn primary" id="loginBtn" type="button">Anmelden</button>
+              <button class="btn" id="goToRegister">Registrieren</button>
             </div>
-            <button type="submit" class="btn thm-green">Create</button>
-          </form>
-        </div>
-      </div>
+            <p id="loginError" class="config-feedback" role="alert"></p>
+          </section>
 
-      <div class="card thm-light-green mb-3">
-        <div class="card-body">
-          <h5 class="card-title">Update Object</h5>
-          <form id="update-form">
-            <div class="mb-3">
-              <label for="update-id" class="form-label">ID</label>
-              <input
-                type="number"
-                class="form-control"
-                id="update-id"
-                required
-              />
+          <section class="left-section" data-left-section="register">
+            <form id="register-form">
+              <label class="field">
+                <span>Benutzername</span>
+                <input id="register-username" type="text" placeholder="Benutzername wählen" />
+              </label>
+              <label class="field">
+                <span>RFID-Karte (optional)</span>
+                <input type="text" placeholder="04 9C 64 D2 4B 80" />
+              </label>
+              <label class="field">
+                <span>Passwort</span>
+                <input id="register-password" type="password" placeholder="Passwort eingeben" />
+              </label>
+              <label class="field">
+                <span>Passwort wiederholen</span>
+                <input id="register-password-repeat" type="password" placeholder="Passwort wiederholen" />
+              </label>
+              <p class="form-hint">Benutzername min. 3 Zeichen, Passwort min. 4 Zeichen.</p>
+              <div class="row">
+                <button class="btn primary" id="registerBtn" type="submit">Registrieren</button>
+                <button class="btn" id="backToLoginFromRegister" type="button">← Zurück</button>
+              </div>
+              <p id="registerError" class="config-feedback" role="alert"></p>
+            </form>
+          </section>
+
+          <section class="left-section" data-left-section="controller">
+            <h3 class="controller-config-title">Controller Konfiguration</h3>
+            <p class="muted">Wähle einen verfügbaren Controller aus:</p>
+            <div class="row controller-actions">
+              <button type="button" class="btn primary btn-create-controller" id="createControllerBtn">+ Controller erstellen</button>
+              <button type="button" class="btn small ghost" id="refreshControllersBtn">↻ Aktualisieren</button>
             </div>
-            <div class="mb-3">
-              <label for="update-message" class="form-label">Message</label>
-              <input
-                type="text"
-                class="form-control"
-                id="update-message"
-                required
-              />
+            <div id="controllerList" class="controller-list">
+              <p class="muted" id="controllerListEmpty">Lade Controller…</p>
             </div>
-            <button type="submit" class="btn thm-green">Update</button>
-          </form>
-        </div>
-      </div>
-
-      <div class="card thm-light-green mb-3">
-        <div class="card-body">
-          <h5 class="card-title">Delete Object</h5>
-          <form id="delete-form">
-            <div class="mb-3">
-              <label for="delete-id" class="form-label">ID</label>
-              <input
-                type="number"
-                class="form-control"
-                id="delete-id"
-                required
-              />
+            <label class="field">
+              <span>Eigene RFID-Karte anpassen:</span>
+              <input id="rfid-card-input" type="text" placeholder="Karten-ID, bspw.: 04 9C 64 02 45 2B 80" />
+            </label>
+            <div class="row controller-actions">
+              <button type="button" class="btn primary" id="weiterZurLobby">Weiter zur Lobby</button>
             </div>
-            <button type="submit" class="btn thm-green">Delete</button>
-          </form>
+            <p id="controllerError" class="config-feedback" role="alert"></p>
+            <button class="btn ghost" id="backToLogin">Zurück</button>
+          </section>
         </div>
-      </div>
+      </aside>
 
-      <div class="card thm-light-green mb-3">
-        <div class="card-body">
-          <h5 class="card-title">Objects</h5>
-          <button class="btn thm-green mb-3" id="fetch-objects">
-            Fetch Objects
-          </button>
-          <ul id="objects-list" class="list-group"></ul>
+      <main class="panel right">
+        <div class="panel-header">
+          <span class="icon">🏛️</span>
+          <h1>Quiz-Plattform</h1>
+          <button class="btn small ghost" id="refreshLobby">↻ Aktualisieren</button>
         </div>
-      </div>
+        <div class="panel-body">
+          <div class="tabs" id="mainTabs">
+            <button class="tab is-active" data-section="lobby">Lobby</button>
+            <button class="tab" data-section="spiel">Spiel</button>
+            <button class="tab" data-section="auswertung">Auswertung</button>
+            <button class="tab" data-section="web-controller">Web-Controller</button>
+            <button class="tab" data-section="highscores">Highscores</button>
+          </div>
 
-      <div class="card thm-light-green mb-3">
-        <div class="card-body">
-          <h5 class="card-title">Webcontroller</h5>
-          <button class="btn thm-green mb-3" id="open-webcontroller">
-            Open Webcontroller
-          </button>
+          <section class="main-section is-active" data-main-section="lobby">
+            <div class="grid-2">
+              <div class="card">
+                <h2>Spiel-Konfiguration</h2>
+                <div class="segment-row" id="modePills">
+                  <button type="button" class="pill is-active" data-count="5">5 Fragen</button>
+                  <button type="button" class="pill" data-count="10">10 Fragen</button>
+                  <button type="button" class="pill" data-count="20">20 Fragen</button>
+                </div>
+                <p class="question-counter-row">
+                  <span class="question-counter-label">Fragen:</span>
+                  <span id="questionCounterDisplay" class="question-counter-value">0/5</span>
+                  <span class="question-counter-hint" id="questionCounterHint">(verfügbar / Modus)</span>
+                </p>
+                <h3>Kategorien (leicht, mittel, schwer)</h3>
+                <div class="checkbox-grid" id="categoryCheckboxes">
+                  <label><input type="checkbox" name="category" value="programmierung" /> Programmierung <span class="category-count">(2, 5, 2)</span></label>
+                  <label><input type="checkbox" name="category" value="datenbanken" /> Datenbanken <span class="category-count">(2, 7, 1)</span></label>
+                  <label><input type="checkbox" name="category" value="web-technologien" /> Web-Technologien <span class="category-count">(5, 1, 1)</span></label>
+                  <label><input type="checkbox" name="category" value="netzwerke" /> Netzwerke <span class="category-count">(8, 9, 2)</span></label>
+                  <label><input type="checkbox" name="category" value="betriebssysteme" /> Betriebssysteme <span class="category-count">(3, 6, 4)</span></label>
+                  <label><input type="checkbox" name="category" value="it-sicherheit" /> IT-Sicherheit <span class="category-count">(1, 6, 6)</span></label>
+                  <label><input type="checkbox" name="category" value="algorithmen" /> Algorithmen <span class="category-count">(8, 2, 4)</span></label>
+                  <label><input type="checkbox" name="category" value="software-engineering" /> Software Engineering <span class="category-count">(2, 4, 3)</span></label>
+                  <label><input type="checkbox" name="category" value="embedded-systems" /> Embedded Systems <span class="category-count">(1, 5, 5)</span></label>
+                  <label><input type="checkbox" name="category" value="linux-tools" /> Linux &amp; Tools <span class="category-count">(9, 3, 2)</span></label>
+                </div>
+                <h3>Schwierigkeitsstufe</h3>
+                <div id="difficultyCheckboxes">
+                  <label><input type="checkbox" name="difficulty" value="leicht" checked /> Leicht</label>
+                  <label><input type="checkbox" name="difficulty" value="mittel" checked /> Mittel</label>
+                  <label><input type="checkbox" name="difficulty" value="schwer" /> Schwer</label>
+                </div>
+                <div class="row" id="configGameBtnWrap">
+                  <button class="btn primary" id="configGameBtn" type="button">▶ Spiel starten</button>
+                </div>
+                <p id="configGameError" class="config-feedback" role="alert" aria-live="polite"></p>
+              </div>
+
+              <div class="card">
+                <h2>Aktive Teilnehmer</h2>
+                <div id="playerList" class="player-list"></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="main-section" data-main-section="spiel">
+            <div class="card" id="gameCard">
+              <div id="gameCountdownOverlay" class="countdown-overlay" style="display:none;">
+                <span id="gameCountdownNumber" class="countdown-number">3</span>
+              </div>
+              <div class="question-header">
+                <p class="question-counter-row game-counter">
+                  <span class="question-counter-label">Frage:</span>
+                  <span id="gameQuestionCounterDisplay" class="question-counter-value">0/5</span>
+                </p>
+                <span id="gameTimer" class="timer">30s</span>
+              </div>
+              <div id="gameContent" class="game-content">
+                <p class="muted">Kein aktives Spiel. Starte die Partie aus der Lobby.</p>
+              </div>
+              <div class="answers" id="answerGrid" style="display:none;">
+                <button class="answer a" data-option="A">A</button>
+                <button class="answer b" data-option="B">B</button>
+                <button class="answer c" data-option="C">C</button>
+                <button class="answer d" data-option="D">D</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="main-section" data-main-section="auswertung">
+            <div class="card">
+              <h2>Auswertung</h2>
+              <p id="evalQuestionInfo" class="muted"></p>
+              <h3>Ergebnisse dieser Frage</h3>
+              <div id="evaluationList" class="evaluation-list"></div>
+              <h3 style="margin-top:16px;">Gesamtwertung</h3>
+              <table class="table score-table">
+                <thead><tr><th>Rang</th><th>Spieler</th><th>Punkte</th></tr></thead>
+                <tbody id="evalRankingsBody"></tbody>
+              </table>
+              <p class="muted" id="evaluationEmpty" style="display:none;">Keine Auswertung verfügbar.</p>
+              <div class="row" style="margin-top:16px;">
+                <button class="btn primary" id="backToLobbyFromAuswertung">Zurück zur Lobby</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="main-section" data-main-section="web-controller">
+            <div class="card">
+              <div class="controller-header">
+                <div>
+                  <h2>Web-Controller</h2>
+                  <div class="muted" id="controllerIdDisplay">—</div>
+                </div>
+                <button class="btn small ready-toggle" id="readyToggle">✔ Bereit</button>
+              </div>
+              <div class="muted" id="controllerPlayerDisplay">Nicht verbunden</div>
+              <div class="answers" id="controllerAnswers">
+                <button class="answer a">A</button>
+                <button class="answer b">B</button>
+                <button class="answer c">C</button>
+                <button class="answer d">D</button>
+              </div>
+              <div class="hint" style="margin-top:12px;">Nach Antwort gesperrt bis zur nächsten Frage.</div>
+            </div>
+          </section>
+
+          <section class="main-section" data-main-section="highscores">
+            <div class="card highscores-card">
+              <div class="highscore-header">
+                <h2>Bestenliste</h2>
+                <div class="score-tabs" id="highscoreTabs">
+                  <button class="score-tab is-active" data-mode="5">5 Fragen</button>
+                  <button class="score-tab" data-mode="10">10 Fragen</button>
+                  <button class="score-tab" data-mode="20">20 Fragen</button>
+                </div>
+              </div>
+              <table class="table score-table">
+                <thead>
+                  <tr>
+                    <th>Rang</th>
+                    <th>Spieler</th>
+                    <th>Punkte</th>
+                    <th>Datum / Uhrzeit</th>
+                  </tr>
+                </thead>
+                <tbody id="highscoresBody">
+                  <tr id="highscoresEmpty">
+                    <td colspan="4" class="muted">Keine Einträge. Lade Highscores…</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="row" style="margin-top:16px;">
+                <button class="btn primary" id="backToLobbyFromHighscores">← Zurück zur Lobby</button>
+              </div>
+            </div>
+          </section>
         </div>
-      </div>
-
-      <div class="card thm-light-green mb-3">
-        <div class="card-body">
-          <h5 class="card-title">MQTT Test Area</h5>
-
-          <div class="mb-3">
-            <label for="mqtt-broker" class="form-label">MQTT Broker URL</label>
-            <input
-              type="text"
-              class="form-control"
-              id="mqtt-broker"
-              value="ws://localhost:9001"
-              required
-            />
-          </div>
-
-          <div class="mb-3">
-            <label for="mqtt-username" class="form-label"
-              >Username (optional)</label
-            >
-            <input
-              type="text"
-              class="form-control"
-              id="mqtt-username"
-              value="your_mqtt_username"
-            />
-          </div>
-
-          <div class="mb-3">
-            <label for="mqtt-password" class="form-label"
-              >Password (optional)</label
-            >
-            <input
-              type="password"
-              class="form-control"
-              id="mqtt-password"
-              value="your_mqtt_password"
-            />
-          </div>
-
-          <button class="btn thm-dark-green mb-3" id="mqtt-connect-btn">
-            Connect MQTT
-          </button>
-          <button class="btn btn-danger mb-3" id="mqtt-disconnect-btn">
-            Disconnect MQTT
-          </button>
-
-          <hr />
-
-          <div class="mb-3">
-            <label for="mqtt-topic" class="form-label">MQTT Topic</label>
-            <input
-              type="text"
-              class="form-control"
-              id="mqtt-topic"
-              placeholder="z.B. test/topic"
-              required
-            />
-          </div>
-
-          <div class="mb-3">
-            <label for="mqtt-message" class="form-label">Message</label>
-            <input
-              type="text"
-              class="form-control"
-              id="mqtt-message"
-              placeholder="Nachricht eingeben"
-              required
-            />
-          </div>
-
-          <button class="btn thm-green mb-3" id="mqtt-publish-btn">
-            Publish Message
-          </button>
-
-          <h6>Received Messages:</h6>
-          <div
-            id="mqtt-messages-box"
-            class="border rounded p-2"
-            style="height: 200px; overflow-y: scroll; background-color: #f5f5f5"
-          ></div>
+        <div class="bottom-nav" id="bottomNav">
+          <button class="tab is-active" data-section="lobby">Lobby</button>
+          <button class="tab" data-section="spiel">Spiel</button>
+          <button class="tab" data-section="auswertung">Auswertung</button>
+          <button class="tab" data-section="web-controller">Web-Controller</button>
+          <button class="tab" data-section="highscores">Highscores</button>
         </div>
-      </div>
+      </main>
     </div>
+
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <script src="env.js"></script>
+    <script src="js/http/app_http.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/mqtt/app_mqtt.js"></script>
   </body>
 </html>
