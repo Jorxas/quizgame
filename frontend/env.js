@@ -5,3 +5,4 @@ window.__ENV__ = {
   MQTT_PASSWORD:        "r%^e{[FxW8Lp",
   MQTT_MESSAGE_PREFIX:  "group-16/",
 };
+
