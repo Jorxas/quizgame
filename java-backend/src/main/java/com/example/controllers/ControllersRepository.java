@@ -107,4 +107,47 @@ public class ControllersRepository {
                     }
                 });
     }
+
+    /**
+     * Creates a controller if it does not exist (ID sent by web-controller via MQTT register).
+     * Uses INSERT ... ON DUPLICATE KEY UPDATE to set last_seen_at.
+     */
+    public void createControllerIfNotExists(String controllerId, Handler<AsyncResult<Void>> resultHandler) {
+        String sql = "INSERT INTO controllers (controller_id, controller_type, status) VALUES (?, 'WEB', 'FREE') " +
+                "ON DUPLICATE KEY UPDATE last_seen_at = CURRENT_TIMESTAMP";
+        jdbcPool.preparedQuery(sql)
+                .execute(Tuple.of(controllerId), ar -> {
+                    if (ar.succeeded()) {
+                        resultHandler.handle(Future.succeededFuture());
+                    } else {
+                        resultHandler.handle(Future.failedFuture(ar.cause()));
+                    }
+                });
+    }
+
+    /** Updates last_seen_at for the given controller_id (e.g. on MQTT register or pong). */
+    public void updateLastSeen(String controllerId, Handler<AsyncResult<Void>> resultHandler) {
+        String sql = "UPDATE controllers SET last_seen_at = CURRENT_TIMESTAMP WHERE controller_id = ?";
+        jdbcPool.preparedQuery(sql)
+                .execute(Tuple.of(controllerId), ar -> {
+                    if (ar.succeeded()) {
+                        resultHandler.handle(Future.succeededFuture());
+                    } else {
+                        resultHandler.handle(Future.failedFuture(ar.cause()));
+                    }
+                });
+    }
+
+    /** Sets status (e.g. OFFLINE) for the given controller_id. */
+    public void updateStatus(String controllerId, String status, Handler<AsyncResult<Void>> resultHandler) {
+        String sql = "UPDATE controllers SET status = ? WHERE controller_id = ?";
+        jdbcPool.preparedQuery(sql)
+                .execute(Tuple.of(status, controllerId), ar -> {
+                    if (ar.succeeded()) {
+                        resultHandler.handle(Future.succeededFuture());
+                    } else {
+                        resultHandler.handle(Future.failedFuture(ar.cause()));
+                    }
+                });
+    }
 }
