@@ -60,7 +60,8 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       MQTT_BROKER_URL: ${MQTT_BROKER_URL}
-      MQTT_PORT: ${MQTT_BROKER_PORT}
+      MQTT_BROKER_PORT: ${MQTT_BROKER_PORT_TCP}
+      MQTT_MESSAGE_PREFIX: ${MQTT_MESSAGE_PREFIX}
       MQTT_USERNAME: ${MQTT_USERNAME}
       MQTT_PASSWORD: ${MQTT_PASSWORD}
     depends_on:
@@ -97,7 +98,7 @@ services:
       - "443:443"  # HTTPS (konfiguriere SSL entsprechend)
     environment:
       MQTT_BROKER_URL:      ${MQTT_BROKER_URL}
-      MQTT_BROKER_PORT:     ${MQTT_BROKER_PORT}
+      MQTT_BROKER_PORT:     ${MQTT_BROKER_PORT_WS}
       MQTT_USERNAME:        ${MQTT_USERNAME}
       MQTT_PASSWORD:        ${MQTT_PASSWORD}
       MQTT_MESSAGE_PREFIX:  ${MQTT_MESSAGE_PREFIX}
@@ -118,7 +119,7 @@ services:
       - "444:443"  # HTTPS (konfiguriere SSL entsprechend)
     environment:
       MQTT_BROKER_URL:      ${MQTT_BROKER_URL}
-      MQTT_BROKER_PORT:     ${MQTT_BROKER_PORT}
+      MQTT_BROKER_PORT:     ${MQTT_BROKER_PORT_WS}
       MQTT_USERNAME:        ${MQTT_USERNAME}
       MQTT_PASSWORD:        ${MQTT_PASSWORD}
       MQTT_MESSAGE_PREFIX:  ${MQTT_MESSAGE_PREFIX}
