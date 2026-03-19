@@ -45,7 +45,7 @@
               </label>
               <label class="field">
                 <span>RFID-Karte (optional)</span>
-                <input type="text" placeholder="04 9C 64 D2 4B 80" />
+                <input id="register-rfid" type="text" placeholder="z.B. 53EDA50D oder 04 9C 64 D2 4B 80" />
               </label>
               <label class="field">
                 <span>Passwort</span>
@@ -72,11 +72,15 @@
               <button type="button" class="btn small ghost" id="refreshControllersBtn">↻ Aktualisieren</button>
             </div>
             <div id="controllerList" class="controller-list">
+              <!-- Liste remplie par l’API GET /api/controllers/available -->
               <p class="muted" id="controllerListEmpty">Lade Controller…</p>
             </div>
             <label class="field">
               <span>Eigene RFID-Karte anpassen:</span>
-              <input id="rfid-card-input" type="text" placeholder="Karten-ID, bspw.: 04 9C 64 02 45 2B 80" />
+              <div class="row">
+                <input id="rfid-card-input" type="text" placeholder="Karten-ID, bspw.: 53EDA50D oder 04 9C 64 02 45 2B 80" />
+                <button type="button" class="btn primary" id="rfidSaveBtn">Speichern</button>
+              </div>
             </label>
             <div class="row controller-actions">
               <button type="button" class="btn primary" id="weiterZurLobby">Weiter zur Lobby</button>
