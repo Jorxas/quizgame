@@ -76,6 +76,7 @@ function readGameConfig() {
     categories: categories,
     difficulties: difficulties
   };
+}
 
 function loadUserRfid() {
   if (!window.currentUsername) return;
@@ -115,7 +116,6 @@ function saveUserRfid() {
     .catch(function () {
       showInlineMessage("controllerError", "Verbindungsfehler.", false);
     });
-}
 }
 
 function loadAvailableControllers(preferredControllerId) {
@@ -224,12 +224,6 @@ function applyLobbyPlayersData(players) {
       };
     }(player.username));
     row.appendChild(leaveBtn);
-    statusWrap.appendChild(statusDot);
-    statusWrap.appendChild(statusText);
-    tag.className = "tag " + (player.ready ? "ok" : "warn");
-    tag.textContent = player.ready ? "Ready" : "Nicht bereit";
-    row.appendChild(name);
-    row.appendChild(tag);
     list.appendChild(row);
   });
   if (window.updateSpielStartenState) window.updateSpielStartenState();
@@ -393,7 +387,7 @@ document.getElementById("register-form").addEventListener("submit", function (ev
   fetch("/api/auth/register", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username: username, password: password, passwordRepeat: passwordRepeat })
+    body: JSON.stringify(body)
   })
     .then(function (response) {
       return response.text().then(function (text) {
@@ -428,10 +422,6 @@ document.getElementById("createControllerBtn").addEventListener("click", functio
 
 document.getElementById("refreshControllersBtn").addEventListener("click", function () {
   loadAvailableControllers();
-});
-
-document.getElementById("rfidSaveBtn").addEventListener("click", function () {
-  saveUserRfid();
 });
 
 document.getElementById("rfidSaveBtn").addEventListener("click", function () {
@@ -483,7 +473,6 @@ document.getElementById("weiterZurLobby").addEventListener("click", function (ev
     .then(function (lobbyResult) {
       if (!lobbyResult) return;
       if (lobbyResult.ok) {
-        window.lobbyUsername = window.currentUsername;
         window.lobbyUsername = window.currentUsername;
         loadAvailableControllers();
         loadLobbyPlayers();
