@@ -16,5 +16,6 @@ static constexpr uint16_t    MQTT_PORT     = 1883;
 static constexpr const char* MQTT_USER     = "test";
 static constexpr const char* MQTT_PASS     = "test1234";
 
-// Topics
+// Topics (same prefix as web controller / backend)
 static constexpr const char* MQTT_TOPIC_MAC = "test/arduino/mac";
+static constexpr const char* MQTT_PREFIX = "group-16/";

@@ -21,4 +21,7 @@ bool publishMacAddress();
 // Returns the MAC-Address as string (e.g. "AA:BB:...").
 String macAddressString();
 
+// Call from main loop(): processes MQTT messages and reconnects if needed.
+void loop();
+
 } // namespace net::wifi_mqtt
