@@ -12,28 +12,22 @@
 
 static void handleButtons() {
   if (hw::buttons::isPressed(PIN_BTN_YELLOW)) {
-    Serial.println("YELLOW button");
     hw::neopixel::flash(hw::neopixel::strip().Color(120, 120, 0), 20);
-
-    // Send MAC per MQTT as debug print
     (void)net::wifi_mqtt::publishMacAddress();
     return;
   }
 
   if (hw::buttons::isPressed(PIN_BTN_RED)) {
-    Serial.println("RED button");
     hw::neopixel::flash(hw::neopixel::strip().Color(120, 0, 0), 20);
     return;
   }
 
   if (hw::buttons::isPressed(PIN_BTN_BLUE)) {
-    Serial.println("BLUE button");
     hw::neopixel::flash(hw::neopixel::strip().Color(0, 0, 120), 20);
     return;
   }
 
   if (hw::buttons::isPressed(PIN_BTN_GREEN)) {
-    Serial.println("GREEN button");
     hw::neopixel::flash(hw::neopixel::strip().Color(0, 120, 0), 20);
     return;
   }
@@ -44,7 +38,7 @@ static void handleButtons() {
 
 void setup() {
   Serial.begin(9600);
-  while (!Serial) { delay(10); }
+  for (uint32_t t = millis(); !Serial && (millis() - t < 2000);) delay(10);
 
   hw::buttons::begin();
   hw::neopixel::begin();
@@ -54,17 +48,17 @@ void setup() {
 
   hw::rfid::begin();
 
-  Serial.println("Setup complete.");
-
-  // Initialize the WiFi and MQTT connections.
   if (net::wifi_mqtt::ensureConnected()) {
-    Serial.println("MQTT test connection OK (startup).");
+    SAFE_PRINTLN("Ready");
   } else {
-    Serial.println("MQTT test connection FAILED (startup).");
+    SAFE_PRINTLN("MQTT fail");
   }
 }
 
 void loop() {
+  // Process MQTT (controller status, game events -> OLED display).
+  net::wifi_mqtt::loop();
+
   // Keep polling for new RFID cards.
   hw::rfid::service();
 
