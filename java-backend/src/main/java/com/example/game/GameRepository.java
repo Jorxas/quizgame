@@ -69,6 +69,29 @@ public class GameRepository {
         });
     }
 
+    /** Prüft, ob alle verbundenen Spieler (Controller nicht OFFLINE) ready sind. */
+    public void areConnectedPlayersReady(long sessionId, Handler<AsyncResult<Boolean>> resultHandler) {
+        String sql = "SELECT COUNT(*) AS connected_total, SUM(CASE WHEN gsp.is_ready = 1 THEN 1 ELSE 0 END) AS connected_ready " +
+                "FROM game_session_players gsp JOIN controllers c ON c.id = gsp.controller_id " +
+                "WHERE gsp.game_session_id = ? AND c.status != 'OFFLINE'";
+        jdbcPool.preparedQuery(sql).execute(Tuple.of(sessionId), ar -> {
+            if (ar.failed()) {
+                resultHandler.handle(Future.failedFuture(ar.cause()));
+                return;
+            }
+            Row row = ar.result().iterator().hasNext() ? ar.result().iterator().next() : null;
+            if (row == null) {
+                resultHandler.handle(Future.succeededFuture(false));
+                return;
+            }
+            Number totalVal = (Number) row.getValue("connected_total");
+            Number readyVal = (Number) row.getValue("connected_ready");
+            long total = totalVal != null ? totalVal.longValue() : 0;
+            long readyCount = readyVal != null ? readyVal.longValue() : 0;
+            resultHandler.handle(Future.succeededFuture(total > 0 && readyCount == total));
+        });
+    }
+
     /** Ermittelt Lobby-Session-ID. */
     public void getLobbySessionId(Handler<AsyncResult<Long>> resultHandler) {
         String sql = "SELECT id FROM game_sessions WHERE state = 'LOBBY' ORDER BY id DESC LIMIT 1";
@@ -282,11 +305,15 @@ public class GameRepository {
         });
     }
 
-    /** Berechnet Session-Ergebnisse. */
+    /** Berechnet Session-Ergebnisse (alle Spieler, Offline-Spieler mit 0 Punkten). */
     public void computeSessionResults(long sessionId, Handler<AsyncResult<JsonArray>> resultHandler) {
         String sql = "INSERT INTO game_session_results (game_session_id, user_id, total_points, total_response_time_ms, correct_count, answered_count) " +
-                "SELECT ga.game_session_id, ga.user_id, SUM(ga.points_awarded), SUM(ga.response_time_ms), SUM(ga.is_correct), COUNT(*) " +
-                "FROM game_answers ga WHERE ga.game_session_id = ? GROUP BY ga.game_session_id, ga.user_id " +
+                "SELECT gsp.game_session_id, gsp.user_id, " +
+                "COALESCE(SUM(ga.points_awarded), 0), COALESCE(SUM(ga.response_time_ms), 0), " +
+                "COALESCE(SUM(ga.is_correct), 0), COUNT(ga.id) " +
+                "FROM game_session_players gsp " +
+                "LEFT JOIN game_answers ga ON ga.user_id = gsp.user_id AND ga.game_session_id = gsp.game_session_id " +
+                "WHERE gsp.game_session_id = ? GROUP BY gsp.game_session_id, gsp.user_id " +
                 "ON DUPLICATE KEY UPDATE total_points = VALUES(total_points), total_response_time_ms = VALUES(total_response_time_ms), " +
                 "correct_count = VALUES(correct_count), answered_count = VALUES(answered_count)";
         jdbcPool.preparedQuery(sql).execute(Tuple.of(sessionId), ar -> {
@@ -324,6 +351,23 @@ public class GameRepository {
         jdbcPool.preparedQuery(sql).execute(Tuple.of(sessionId), ar -> {
             if (ar.succeeded()) resultHandler.handle(Future.succeededFuture());
             else resultHandler.handle(Future.failedFuture(ar.cause()));
+        });
+    }
+
+    /** Zählt Spieler mit verbundenem Controller (status != OFFLINE) in der Session. */
+    public void countConnectedPlayersInSession(long sessionId, Handler<AsyncResult<Integer>> resultHandler) {
+        String sql = "SELECT COUNT(*) AS cnt FROM game_session_players gsp " +
+                "JOIN controllers c ON c.id = gsp.controller_id " +
+                "WHERE gsp.game_session_id = ? AND c.status != 'OFFLINE'";
+        jdbcPool.preparedQuery(sql).execute(Tuple.of(sessionId), ar -> {
+            if (ar.failed()) {
+                resultHandler.handle(Future.failedFuture(ar.cause()));
+                return;
+            }
+            int count = ar.result().iterator().hasNext()
+                    ? ar.result().iterator().next().getInteger("cnt")
+                    : 0;
+            resultHandler.handle(Future.succeededFuture(count));
         });
     }
 
