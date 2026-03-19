@@ -457,7 +457,14 @@ input[type="checkbox"] {
 
 .player-row:last-child, .result-row:last-child { border-bottom: none; }
 
-/* Status (Bereit / Nicht bereit) – forme discrète */
+.player-controller-id {
+  color: var(--text-soft);
+  font-size: 0.9em;
+  font-weight: 400;
+  margin-left: 4px;
+}
+
+/* Status (Bereit / Nicht bereit / Offline) – forme discrète */
 .player-status-wrap {
   display: inline-flex;
   align-items: center;
@@ -476,6 +483,8 @@ input[type="checkbox"] {
 .player-status-wrap.is-ready { color: #2a8050; }
 .player-status-wrap.is-not-ready .player-status-dot { background: #c0392b; }
 .player-status-wrap.is-not-ready { color: #c0392b; }
+.player-status-wrap.is-offline .player-status-dot { background: #7f8c8d; }
+.player-status-wrap.is-offline { color: #7f8c8d; }
 
 /* Bouton Austreten – forme pill, style sortie */
 .btn-leave {

@@ -183,15 +183,22 @@ function applyLobbyPlayersData(players) {
     row.className = "player-row";
     name.className = "player-name";
     name.textContent = player.username || "?";
-    statusWrap.className = "player-status-wrap " + (player.ready ? "is-ready" : "is-not-ready");
+    var controllerId = player.controllerId || player.controller_id;
+    var controllerStatus = (player.controllerStatus || player.controller_status || "").toString().toUpperCase();
+    if (controllerId) {
+      var cidSpan = document.createElement("span");
+      cidSpan.className = "player-controller-id";
+      cidSpan.textContent = controllerId;
+      name.appendChild(cidSpan);
+    }
+    var isOffline = controllerStatus === "OFFLINE";
+    statusWrap.className = "player-status-wrap " + (isOffline ? "is-offline" : (player.ready ? "is-ready" : "is-not-ready"));
     statusDot.className = "player-status-dot";
     statusDot.setAttribute("aria-hidden", "true");
-    statusText.textContent = player.ready ? "Bereit" : "Nicht bereit";
+    statusText.textContent = isOffline ? "Offline" : (player.ready ? "Bereit" : "Nicht bereit");
     statusWrap.appendChild(statusDot);
     statusWrap.appendChild(statusText);
     row.appendChild(name);
-    statusDot.className = "player-status-dot";
-    statusDot.setAttribute("aria-hidden", "true");
     row.appendChild(statusWrap);
     var leaveBtn = document.createElement("button");
     leaveBtn.type = "button";
