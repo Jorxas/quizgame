@@ -17,14 +17,10 @@ void begin() {
   g_rfid.PCD_Init();
 
   if (detectReaderOnce()) {
-    Serial.println("RFID reader detected.");
     g_readerDetected = true;
   } else {
-    Serial.println("RFID reader NOT detected (check wiring/SPI/CS/RST).");
     g_readerDetected = false;
   }
-
-  g_rfid.PCD_DumpVersionToSerial();
 }
 
 void service() {
@@ -38,14 +34,11 @@ void service() {
 
   if (!g_readerDetected && detectedNow) {
     g_readerDetected = true;
-    Serial.println("RFID reader detected. Scanning for cards...");
     g_rfid.PCD_Init();
-    g_rfid.PCD_DumpVersionToSerial();
   }
 
   if (g_readerDetected && !detectedNow) {
     g_readerDetected = false;
-    Serial.println("RFID reader is no longer reachable.");
   }
 
   // If reader not available, return.
@@ -55,7 +48,6 @@ void service() {
   if (!(g_rfid.PICC_IsNewCardPresent() && g_rfid.PICC_ReadCardSerial())) return;
 
   const String currentUid = uidToString(g_rfid.uid);
-  Serial.println("RFID tag UID: " + currentUid);
   g_lastUid = currentUid;
   g_lastReadMs = now;
 
