@@ -150,4 +150,26 @@ public class ControllersRepository {
                     }
                 });
     }
+
+    /** Hebt die Spielerzuordnung auf und setzt Controller auf FREE (z.B. bei Lobby-Austritt). */
+    public void unbindControllerForUser(String username, Handler<AsyncResult<Void>> resultHandler) {
+        String sql = "UPDATE controllers SET status = 'FREE', assigned_user_id = NULL WHERE assigned_user_id = (SELECT id FROM users WHERE username = ? LIMIT 1)";
+        jdbcPool.preparedQuery(sql).execute(Tuple.of(username), ar -> {
+            if (ar.succeeded()) resultHandler.handle(Future.succeededFuture());
+            else resultHandler.handle(Future.failedFuture(ar.cause()));
+        });
+    }
+
+    /** Setzt Controller auf OFFLINE und hebt die Spielerzuordnung auf. */
+    public void disconnectController(String controllerId, Handler<AsyncResult<Void>> resultHandler) {
+        String sql = "UPDATE controllers SET status = 'OFFLINE', assigned_user_id = NULL WHERE controller_id = ?";
+        jdbcPool.preparedQuery(sql)
+                .execute(Tuple.of(controllerId), ar -> {
+                    if (ar.succeeded()) {
+                        resultHandler.handle(Future.succeededFuture());
+                    } else {
+                        resultHandler.handle(Future.failedFuture(ar.cause()));
+                    }
+                });
+    }
 }

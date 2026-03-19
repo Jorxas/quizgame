@@ -10,9 +10,11 @@ import io.vertx.ext.web.RoutingContext;
 public class LobbyController implements HttpController {
 
     private final LobbyService lobbyService;
+    private final Vertx vertx;
 
     public LobbyController(Vertx vertx) {
         this.lobbyService = new LobbyService();
+        this.vertx = vertx;
     }
 
     /** Registriert die Lobby-Routen. */
@@ -90,6 +92,7 @@ public class LobbyController implements HttpController {
 
         lobbyService.removePlayerFromLobby(username, ar -> {
             if (ar.succeeded()) {
+                vertx.eventBus().publish("lobby.updated", new JsonObject());
                 ctx.response().setStatusCode(200).end("Lobby verlassen.");
             } else {
                 String msg = ar.cause() != null ? ar.cause().getMessage() : "Lobby verlassen fehlgeschlagen.";
