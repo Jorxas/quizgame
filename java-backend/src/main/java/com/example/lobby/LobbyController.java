@@ -21,6 +21,7 @@ public class LobbyController implements HttpController {
         router.post("/api/lobby/create").handler(this::handleCreate);
         router.get("/api/lobby/status").handler(this::handleStatus);
         router.post("/api/lobby/join").handler(this::handleJoin);
+        router.post("/api/lobby/leave").handler(this::handleLeave);
     }
 
     /** Erstellt neue Lobby-Session (POST /api/lobby/create). */
@@ -70,6 +71,29 @@ public class LobbyController implements HttpController {
                 String msg = ar.cause() != null ? ar.cause().getMessage() : "Lobby-Beitritt fehlgeschlagen.";
                 int status = msg.contains("Keine Lobby") ? 404 : 400;
                 ctx.response().setStatusCode(status).end(msg);
+            }
+        });
+    }
+
+    /** Spieler tritt Lobby aus (POST /api/lobby/leave). */
+    private void handleLeave(RoutingContext ctx) {
+        JsonObject body = ctx.body().asJsonObject();
+        if (body == null) {
+            ctx.response().setStatusCode(400).end("Ungültige Anfrage.");
+            return;
+        }
+        String username = body.getString("username");
+        if (username == null || username.isBlank()) {
+            ctx.response().setStatusCode(400).end("Benutzername erforderlich.");
+            return;
+        }
+
+        lobbyService.removePlayerFromLobby(username, ar -> {
+            if (ar.succeeded()) {
+                ctx.response().setStatusCode(200).end("Lobby verlassen.");
+            } else {
+                String msg = ar.cause() != null ? ar.cause().getMessage() : "Lobby verlassen fehlgeschlagen.";
+                ctx.response().setStatusCode(400).end(msg);
             }
         });
     }
