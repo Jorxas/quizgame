@@ -12,7 +12,7 @@ public class ControllersController implements HttpController {
     private final ControllersService controllersService;
 
     public ControllersController(Vertx vertx) {
-        this.controllersService = new ControllersService();
+        this.controllersService = new ControllersService(vertx);
     }
 
     /** Registriert die Controller-Routen. */
@@ -20,6 +20,7 @@ public class ControllersController implements HttpController {
     public void registerRoutes(Router router) {
         router.get("/api/controllers/available").handler(this::handleAvailableControllers);
         router.post("/api/controllers/create-web").handler(this::handleCreateWebController);
+        router.post("/api/controllers/disconnect").handler(this::handleDisconnect);
         router.get("/api/controllers/:controllerId/player-status").handler(this::handleControllerPlayerStatus);
     }
 
@@ -33,6 +34,28 @@ public class ControllersController implements HttpController {
                         .putHeader("content-type", "application/json")
                         .setStatusCode(200)
                         .end(response.encode());
+            } else {
+                ctx.response().setStatusCode(500).end();
+            }
+        });
+    }
+
+    /** Meldet Controller ab bei Schließen der Seite (POST /api/controllers/disconnect). */
+    private void handleDisconnect(RoutingContext ctx) {
+        JsonObject body = ctx.body().asJsonObject();
+        if (body == null) {
+            ctx.response().setStatusCode(400).end();
+            return;
+        }
+        String controllerId = body.getString("controllerId");
+        if (controllerId == null || controllerId.isBlank()) {
+            ctx.response().setStatusCode(400).end();
+            return;
+        }
+
+        controllersService.disconnectController(controllerId, ar -> {
+            if (ar.succeeded()) {
+                ctx.response().setStatusCode(200).end();
             } else {
                 ctx.response().setStatusCode(500).end();
             }
