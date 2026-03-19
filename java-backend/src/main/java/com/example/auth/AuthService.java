@@ -20,4 +20,17 @@ public class AuthService {
     public void login(String username, String password, Handler<AsyncResult<Boolean>> resultHandler) {
         authRepository.verifyUser(username, password, resultHandler);
     }
+
+    public void lookupByRfid(String rfidUid, Handler<AsyncResult<String>> resultHandler) {
+        authRepository.findUsernameByRfidUid(rfidUid, resultHandler);
+    }
+
+    public void getRfidForUser(String username, Handler<AsyncResult<String>> resultHandler) {
+        authRepository.getRfidForUser(username, resultHandler);
+    }
+
+    public void updateRfidForUser(String username, String rfidUid, Handler<AsyncResult<Void>> resultHandler) {
+        authRepository.updateRfidForUser(username, rfidUid, resultHandler);
+    }
 }
+

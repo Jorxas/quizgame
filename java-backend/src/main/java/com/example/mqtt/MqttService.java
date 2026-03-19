@@ -118,4 +118,12 @@ public class MqttService {
         mqttClient.publish(topic, data.toBuffer(), MqttQoS.AT_MOST_ONCE, false, false);
         logger.info("MQTT game/lobby/status: {} players", players.size());
     }
+
+    /** Publishes RFID lookup reply to controller/{mac}/rfid/reply. username null = not found or bind/join failed. */
+    public void publishRfidReply(String controllerMac, String username) {
+        String topic = mqttMessagePrefix + "controller/" + controllerMac + "/rfid/reply";
+        JsonObject data = new JsonObject().put("username", username);
+        mqttClient.publish(topic, data.toBuffer(), MqttQoS.AT_MOST_ONCE, false, false);
+        logger.info("MQTT RFID reply to {}: {}", controllerMac, username != null ? username : "not found");
+    }
 }

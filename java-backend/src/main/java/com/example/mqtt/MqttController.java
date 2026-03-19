@@ -27,11 +27,12 @@ public class MqttController {
     private final Vertx vertx;
     private final ControllersRepository controllersRepository;
     private final LobbyRepository lobbyRepository;
+    private final AuthService authService;
+    private final PlayerService playerService;
+    private final LobbyService lobbyService;
     private final Map<String, Integer> controllerMissedPings = new ConcurrentHashMap<>();
 
-    final String mqttMessagePrefix = System.getenv("MQTT_MESSAGE_PREFIX") != null
-            ? System.getenv("MQTT_MESSAGE_PREFIX")
-            : "group-16/";
+    final String mqttMessagePrefix = System.getenv("MQTT_MESSAGE_PREFIX") != null ? System.getenv("MQTT_MESSAGE_PREFIX") : "group-16/";
     private static final String CONTROLLER_REGISTER_TOPIC_PREFIX = "controller/";
     private static final String CONTROLLER_REGISTER_TOPIC_SUFFIX = "/register";
     private static final String CONTROLLER_PONG_TOPIC_SUFFIX = "/pong";
@@ -47,6 +48,9 @@ public class MqttController {
         this.eventBus = vertx.eventBus();
         this.controllersRepository = new ControllersRepository();
         this.lobbyRepository = new LobbyRepository();
+        this.authService = new AuthService();
+        this.playerService = new PlayerService();
+        this.lobbyService = new LobbyService();
     }
 
     /* EVENTS empfangen und verarbeiten */
@@ -216,6 +220,8 @@ public class MqttController {
                     this.eventBus.publish("game.answer", answerData.encode());
                     logger.info("Player {} answer received via MQTT", playerId);
                 }
+            } else if (topic.equals(mqttMessagePrefix + "auth/rfid/lookup")) {
+                handleRfidLookup(payload, topic);
             } else {
                 logger.info("Handler for topic: {} not implemented", topic);
             }
@@ -225,6 +231,7 @@ public class MqttController {
         mqttClient.subscribe(Map.of(
                 mqttMessagePrefix + "demo/hello_world", 0,
                 mqttMessagePrefix + "output", 0,
+                mqttMessagePrefix + "auth/rfid/lookup", 0,
                 mqttMessagePrefix + "controller/+/register", 0,
                 mqttMessagePrefix + "controller/+/pong", 0,
                 mqttMessagePrefix + "controller/+/request-status", 0,
@@ -249,6 +256,52 @@ public class MqttController {
                 }
             });
         });
+    }
+
+    private void handleRfidLookup(Buffer payload, String topic) {
+        try {
+            JsonObject body = new JsonObject(payload.toString());
+            String uid = body.getString("uid");
+            String mac = body.getString("mac");
+            if (uid == null || uid.isBlank() || mac == null || mac.isBlank()) {
+                mqttService.publishRfidReply(mac != null ? mac : "", null);
+                return;
+            }
+            authService.lookupByRfid(uid.trim(), ar -> {
+                if (ar.failed() || ar.result() == null) {
+                    mqttService.publishRfidReply(mac, null);
+                    return;
+                }
+                String username = ar.result();
+                playerService.bindControllerToPlayer(username, mac, "HARDWARE", bindAr -> {
+                    if (bindAr.succeeded()) {
+                        eventBus.publish("controller.bound", new JsonObject()
+                                .put("controllerId", mac)
+                                .put("playerId", username)
+                                .put("ready", false));
+                    }
+                    // Whether bind succeeded or failed (e.g. controller already assigned to this user
+                    // after a page refresh), try to add to lobby and always reply username if we can.
+                    lobbyService.addPlayerToLobby(username, joinAr -> {
+                        if (joinAr.succeeded()) {
+                            eventBus.publish("lobby.updated", "");
+                        } else {
+                            String msg = joinAr.cause() != null ? joinAr.cause().getMessage() : "";
+                            if (msg != null && msg.contains("bereits in der Lobby")) {
+                                // Re-scan: already in lobby, still success for hardware
+                                logger.info("RFID re-scan: {} already in lobby", username);
+                            } else {
+                                logger.warn("RFID lobby join failed for {}: {}", username, msg);
+                            }
+                        }
+                        mqttService.publishRfidReply(mac, username);
+                    });
+                });
+            });
+        } catch (Exception e) {
+            logger.warn("RFID lookup parse error: {}", e.getMessage());
+            mqttService.publishRfidReply("", null);
+        }
     }
 
     private boolean parseReadyPayload(Buffer payload) {
