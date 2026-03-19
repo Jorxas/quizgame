@@ -46,3 +46,14 @@ static constexpr int OLED_RESET_PIN = -1;
 // Screen size (SH1106/SSD1306 compatible)
 static constexpr uint16_t SCREEN_WIDTH  = 128;
 static constexpr uint16_t SCREEN_HEIGHT = 64;
+
+// =======================
+// MICRO-Lab safety (eviter UART deadlock + OLED driver hang)
+// =======================
+// Apres chaque Serial.println: delay pour laisser l'UART flush (MCU reste flashable)
+// Entre operations OLED I2C: delay pour eviter blocage du driver SH1106
+static constexpr uint16_t SERIAL_FLUSH_DELAY_MS = 15;
+static constexpr uint8_t  OLED_I2C_DELAY_MS = 5;
+static constexpr uint32_t OLED_MIN_UPDATE_INTERVAL_MS = 200;  // Throttle rafraichissements
+
+#define SAFE_PRINTLN(x) do { Serial.println(x); delay(SERIAL_FLUSH_DELAY_MS); } while(0)
