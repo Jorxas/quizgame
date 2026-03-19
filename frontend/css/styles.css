@@ -82,6 +82,7 @@ body {
   overflow: hidden;
 }
 
+/* Subtle texture on header */
 .panel-header::before {
   content: '';
   position: absolute; inset: 0;
@@ -89,6 +90,7 @@ body {
   pointer-events: none;
 }
 
+/* Gold accent stripe */
 .panel-header::after {
   content: '';
   position: absolute; bottom: 0; left: 0; right: 0;
@@ -454,6 +456,47 @@ input[type="checkbox"] {
 }
 
 .player-row:last-child, .result-row:last-child { border-bottom: none; }
+
+/* Status (Bereit / Nicht bereit) – forme discrète */
+.player-status-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-soft);
+  font-weight: 500;
+}
+.player-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.player-status-wrap.is-ready .player-status-dot { background: #2a8050; }
+.player-status-wrap.is-ready { color: #2a8050; }
+.player-status-wrap.is-not-ready .player-status-dot { background: #c0392b; }
+.player-status-wrap.is-not-ready { color: #c0392b; }
+
+/* Bouton Austreten – forme pill, style sortie */
+.btn-leave {
+  margin-left: auto;
+  flex-shrink: 0;
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: 'DM Sans', sans-serif;
+  border-radius: 999px;
+  border: 1px solid rgba(192, 57, 43, 0.4);
+  background: transparent;
+  color: #c0392b;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-leave:hover:not(:disabled) {
+  background: rgba(192, 57, 43, 0.08);
+  border-color: #c0392b;
+}
+.btn-leave:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .status {
   font-size: 10px;
