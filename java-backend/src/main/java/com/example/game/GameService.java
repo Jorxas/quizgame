@@ -88,7 +88,7 @@ public class GameService {
                 resultHandler.handle(Future.failedFuture(new IllegalStateException("Keine Lobby-Session vorhanden")));
                 return;
             }
-            gameRepository.areAllPlayersReady(sessionId, readyAr -> {
+            gameRepository.areConnectedPlayersReady(sessionId, readyAr -> {
                 if (readyAr.failed()) {
                     resultHandler.handle(Future.failedFuture(readyAr.cause()));
                     return;
