@@ -251,6 +251,7 @@ public class MqttController {
                     controllersRepository.updateStatus(controllerId, "OFFLINE", ar -> {
                         if (ar.succeeded()) {
                             logger.info("Controller {} disconnected ({} missed pings)", controllerId, MISSED_PINGS_DISCONNECT);
+                            eventBus.publish("lobby.updated", "");
                         }
                     });
                 } else {

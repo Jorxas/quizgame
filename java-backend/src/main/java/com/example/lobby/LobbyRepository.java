@@ -73,12 +73,13 @@ public class LobbyRepository {
                 });
     }
 
-    /** Liefert Spieler der aktuellen Lobby mit ready-Status. */
+    /** Liefert Spieler der aktuellen Lobby mit ready-Status, Controller-ID und Controller-Status. */
     public void fetchPlayersWithStatus(Handler<AsyncResult<JsonArray>> resultHandler) {
-        String sql = "SELECT u.username, gsp.is_ready " +
+        String sql = "SELECT u.username, gsp.is_ready, c.controller_id, c.status AS controller_status " +
                 "FROM game_session_players gsp " +
                 "JOIN game_sessions gs ON gs.id = gsp.game_session_id " +
                 "JOIN users u ON u.id = gsp.user_id " +
+                "LEFT JOIN controllers c ON c.id = gsp.controller_id " +
                 "WHERE gs.state = 'LOBBY' AND gs.id = (SELECT MAX(id) FROM game_sessions WHERE state = 'LOBBY')";
 
         jdbcPool.preparedQuery(sql)
@@ -90,9 +91,17 @@ public class LobbyRepository {
                             String username = row.getString("username");
                             Boolean isReady = row.getBoolean("is_ready");
                             boolean ready = Boolean.TRUE.equals(isReady);
+                            String controllerId = row.getString("controller_id");
+                            String controllerStatus = row.getString("controller_status");
                             JsonObject playerJson = new JsonObject()
                                     .put("username", username)
                                     .put("ready", ready);
+                            if (controllerId != null && !controllerId.isBlank()) {
+                                playerJson.put("controllerId", controllerId);
+                            }
+                            if (controllerStatus != null && !controllerStatus.isBlank()) {
+                                playerJson.put("controllerStatus", controllerStatus);
+                            }
                             players.add(playerJson);
                         }
                         resultHandler.handle(Future.succeededFuture(players));

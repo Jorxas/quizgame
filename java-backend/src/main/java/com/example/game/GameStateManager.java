@@ -96,10 +96,15 @@ public class GameStateManager {
                                 .put("selectedOption", selectedOption);
                         eventBus.publish("game.player.result", playerResult.encode());
                         logger.info("Answer from {}: correct={}, points={}", playerId, result.getBoolean("is_correct"), result.getDouble("points_awarded"));
-                        if (!questionEnded && answeredPlayers.size() >= players.size()) {
-                            cancelQuestionTimer();
-                            endQuestion();
-                        }
+                        gameRepository.countConnectedPlayersInSession(sessionId, countAr -> {
+                            if (countAr.succeeded() && !questionEnded) {
+                                int connectedCount = countAr.result();
+                                if (answeredPlayers.size() >= connectedCount) {
+                                    cancelQuestionTimer();
+                                    endQuestion();
+                                }
+                            }
+                        });
                     } else {
                         logger.warn("Failed to save answer for {}: {}", playerId, ar.cause().getMessage());
                     }
