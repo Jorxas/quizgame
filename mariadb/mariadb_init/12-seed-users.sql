@@ -9,15 +9,15 @@ SET time_zone = '+00:00';
 
 -- ============================================
 -- INSERT DEMO USERS
--- Password: test1234 (SHA2-256 hashed)
+-- Password: test1234 (BCrypt hashed)
 -- ============================================
 
 INSERT IGNORE INTO users (id, username, password_hash, display_name) VALUES
-(1, 'alice', SHA2('test1234', 256), 'Alice'),
-(2, 'bob', SHA2('test1234', 256), 'Bob'),
-(3, 'charlie', SHA2('test1234', 256), 'Charlie'),
-(4, 'diana', SHA2('test1234', 256), 'Diana'),
-(5, 'bernd', SHA2('test1234', 256), 'Bernd');
+(1, 'alice', '$2a$10$luNilKxBbCQztSiOk7J19eryXTa431VP9RopW0CJTSiJEL2npzWfK', 'Alice'),
+(2, 'bob', '$2a$10$luNilKxBbCQztSiOk7J19eryXTa431VP9RopW0CJTSiJEL2npzWfK', 'Bob'),
+(3, 'charlie', '$2a$10$luNilKxBbCQztSiOk7J19eryXTa431VP9RopW0CJTSiJEL2npzWfK', 'Charlie'),
+(4, 'diana', '$2a$10$luNilKxBbCQztSiOk7J19eryXTa431VP9RopW0CJTSiJEL2npzWfK', 'Diana'),
+(5, 'bernd', '$2a$10$luNilKxBbCQztSiOk7J19eryXTa431VP9RopW0CJTSiJEL2npzWfK', 'Bernd');
 
 -- Verify insertion
 SELECT COUNT(*) as user_count FROM users;
