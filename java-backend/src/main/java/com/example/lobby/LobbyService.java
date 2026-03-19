@@ -33,7 +33,10 @@ public class LobbyService {
         lobbyRepository.addPlayerToLobby(username, resultHandler);
     }
 
-    /** Aktualisiert ready-Status eines Spielers. */
+    public void removePlayerFromLobby(String username, Handler<AsyncResult<Void>> resultHandler) {
+        lobbyRepository.removePlayerFromLobby(username, resultHandler);
+    }
+
     public void updatePlayerReady(String playerId, boolean ready, Handler<AsyncResult<Void>> resultHandler) {
         lobbyRepository.updatePlayerReady(playerId, ready, resultHandler);
     }
