@@ -170,6 +170,28 @@ public class LobbyRepository {
                 });
     }
 
+    public void removePlayerFromLobby(String username, Handler<AsyncResult<Void>> resultHandler) {
+        String sql = "DELETE gsp FROM game_session_players gsp " +
+                "JOIN game_sessions gs ON gs.id = gsp.game_session_id " +
+                "JOIN users u ON u.id = gsp.user_id " +
+                "WHERE gs.state IN ('LOBBY', 'COUNTDOWN') " +
+                "AND gs.id = (SELECT id FROM game_sessions WHERE state IN ('LOBBY', 'COUNTDOWN') ORDER BY id DESC LIMIT 1) " +
+                "AND u.username = ?";
+
+        jdbcPool.preparedQuery(sql)
+                .execute(Tuple.of(username), ar -> {
+                    if (ar.failed()) {
+                        resultHandler.handle(Future.failedFuture(ar.cause()));
+                        return;
+                    }
+                    if (ar.result().rowCount() == 0) {
+                        resultHandler.handle(Future.failedFuture("Player not found in current lobby"));
+                        return;
+                    }
+                    resultHandler.handle(Future.succeededFuture());
+                });
+    }
+
     /** Aktualisiert ready-Status eines Spielers. */
     public void updatePlayerReady(String playerId, boolean ready, Handler<AsyncResult<Void>> resultHandler) {
         String sql = "UPDATE game_session_players gsp " +

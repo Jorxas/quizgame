@@ -12,8 +12,8 @@ public class AuthService {
     }
 
     /** Legt einen neuen Benutzer an. */
-    public void register(String username, String password, Handler<AsyncResult<Void>> resultHandler) {
-        authRepository.insertUser(username, password, resultHandler);
+    public void register(String username, String password, String rfidUid, Handler<AsyncResult<Void>> resultHandler) {
+        authRepository.insertUser(username, password, rfidUid, resultHandler);
     }
 
     /** Prüft Login und gibt true zurück wenn gültig. */
