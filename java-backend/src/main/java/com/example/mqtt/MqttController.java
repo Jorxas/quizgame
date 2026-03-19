@@ -6,8 +6,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.example.auth.AuthService;
 import com.example.controllers.ControllersRepository;
 import com.example.lobby.LobbyRepository;
+import com.example.lobby.LobbyService;
+import com.example.player.PlayerService;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
