@@ -305,4 +305,31 @@
 
   setReadyUi(false);
   attachAnswerHandlers(controllerAnswers);
+
+  /** Bei Schließen der Seite: Controller sofort als getrennt melden (sendBeacon ist zuverlässig bei unload). */
+  function getApiBase() {
+    var env = window.__ENV__ || {};
+    if (env.API_BASE_URL) return env.API_BASE_URL.replace(/\/$/, "");
+    if (window.location.port === "81") {
+      return window.location.protocol + "//" + window.location.hostname + ":80";
+    }
+    return window.location.origin;
+  }
+
+  function notifyDisconnect() {
+    if (!controllerId) return;
+    var url = getApiBase() + "/api/controllers/disconnect";
+    var body = JSON.stringify({ controllerId: controllerId });
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon(url, new Blob([body], { type: "application/json" }));
+    } else {
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", url, false);
+      xhr.setRequestHeader("Content-Type", "application/json");
+      try { xhr.send(body); } catch (e) {}
+    }
+  }
+
+  window.addEventListener("pagehide", notifyDisconnect);
+  window.addEventListener("beforeunload", notifyDisconnect);
 })();
