@@ -1,5 +1,9 @@
 package com.example;
 
+/**
+ * Haupt-Verticle – startet JDBC-Pool, GameStateManager, MQTT- und HTTP-Verticles.
+ * Registriert alle REST-Controller (Auth, Controllers, Lobby, Player, Game, Highscores, Object).
+ */
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -11,6 +15,7 @@ import com.example.lobby.LobbyController;
 import com.example.player.PlayerController;
 import com.example.database.DatabaseClient;
 import com.example.game.GameController;
+import com.example.highscores.HighscoresController;
 import com.example.game.GameStateManager;
 import com.example.http.HttpController;
 import com.example.http.HttpServerVerticle;
@@ -26,6 +31,7 @@ public class MainVerticle extends AbstractVerticle {
 
     private static final Logger logger = LoggerFactory.getLogger(MainVerticle.class);
 
+    /** Startet alle Verticles (MQTT, HTTP), JDBC-Pool und GameStateManager. */
     @Override
     public void start(Promise<Void> startPromise) {
         setupJDBCPool();
@@ -46,6 +52,7 @@ public class MainVerticle extends AbstractVerticle {
 
     }
 
+    /** Konfiguriert und initialisiert den JDBC-Pool mit Umgebungsvariablen. */
     private void setupJDBCPool() {
         JsonObject config = new JsonObject()
                 .put("DB_HOST", System.getenv("DB_HOST") != null ? System.getenv("DB_HOST") : "mariadb")
@@ -57,6 +64,7 @@ public class MainVerticle extends AbstractVerticle {
         DatabaseClient.initialize(vertx, config);
     }
 
+    /** Registriert alle REST-Controller an den HTTP-Router. */
     private void setupHttpVerticle(HttpServerVerticle httpVerticle) {
 
         final List<HttpController> controllers = List.of(
@@ -65,12 +73,14 @@ public class MainVerticle extends AbstractVerticle {
                 new LobbyController(vertx),
                 new PlayerController(vertx),
                 new GameController(vertx),
+                new HighscoresController(vertx),
                 new ObjectController(vertx)
         );
 
         controllers.forEach(it -> it.registerRoutes(httpVerticle.router));
     }
 
+    /** Einstiegspunkt: startet Vert.x und deployed das MainVerticle. */
     public static void main(String[] args) {
         Vertx vertx = Vertx.vertx();
         vertx.deployVerticle(new MainVerticle(), res -> {

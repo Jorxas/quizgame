@@ -1,5 +1,8 @@
 package com.example.auth;
 
+/**
+ * Auth-Repository – Datenbankzugriff für Benutzer und RFID.
+ */
 import com.example.database.DatabaseClient;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -18,13 +21,17 @@ public class AuthRepository {
         this.jdbcPool = DatabaseClient.getInstance();
     }
 
-    /** Fügt Benutzer in DB ein (Passwort BCrypt). */
-    public void insertUser(String username, String password, Handler<AsyncResult<Void>> resultHandler) {
-        String passwordHash = BCrypt.hashpw(password, BCrypt.gensalt());
-        String sql = "INSERT INTO users (username, password_hash) VALUES (?, ?)";
+    /** Fügt einen neuen Benutzer in die Datenbank ein (Passwort wird gehasht). */
+    public void insertUser(String username, String password, String rfidUid, Handler<AsyncResult<Void>> resultHandler) {
+        String rfid = (rfidUid != null && !rfidUid.isBlank()) ? rfidUid.trim() : null;
+        String hash = BCrypt.hashpw(password, BCrypt.gensalt(10));
+        String sql = rfid != null
+                ? "INSERT INTO users (username, password_hash, rfid_uid) VALUES (?, ?, ?)"
+                : "INSERT INTO users (username, password_hash) VALUES (?, ?)";
 
+        io.vertx.sqlclient.Tuple params = rfid != null ? Tuple.of(username, hash, rfid) : Tuple.of(username, hash);
         jdbcPool.preparedQuery(sql)
-                .execute(Tuple.of(username, passwordHash), ar -> {
+                .execute(params, ar -> {
                     if (ar.succeeded()) {
                         resultHandler.handle(Future.succeededFuture());
                     } else {
@@ -35,21 +42,65 @@ public class AuthRepository {
 
     /** Prüft Username/Passwort gegen DB, liefert true falls gültig. */
     public void verifyUser(String username, String password, Handler<AsyncResult<Boolean>> resultHandler) {
-        String sql = "SELECT password_hash FROM users WHERE username = ?";
+        String sql = "SELECT password_hash FROM users WHERE username = ? LIMIT 1";
+
         jdbcPool.preparedQuery(sql)
                 .execute(Tuple.of(username), ar -> {
-                    if (ar.failed()) {
+                    if (ar.succeeded()) {
+                        if (!ar.result().iterator().hasNext()) {
+                            resultHandler.handle(Future.succeededFuture(false));
+                            return;
+                        }
+                        Row row = ar.result().iterator().next();
+                        String storedHash = row.getString("password_hash");
+                        boolean valid = storedHash != null && BCrypt.checkpw(password, storedHash);
+                        resultHandler.handle(Future.succeededFuture(valid));
+                    } else {
                         resultHandler.handle(Future.failedFuture(ar.cause()));
-                        return;
                     }
-                    RowSet<Row> rows = ar.result();
-                    if (!rows.iterator().hasNext()) {
-                        resultHandler.handle(Future.succeededFuture(false));
-                        return;
+                });
+    }
+
+    /** Liest die RFID-UID des Benutzers aus der Datenbank. */
+    public void getRfidForUser(String username, Handler<AsyncResult<String>> resultHandler) {
+        String sql = "SELECT rfid_uid FROM users WHERE username = ? LIMIT 1";
+        jdbcPool.preparedQuery(sql)
+                .execute(Tuple.of(username), ar -> {
+                    if (ar.succeeded() && ar.result().iterator().hasNext()) {
+                        Row row = ar.result().iterator().next();
+                        resultHandler.handle(Future.succeededFuture(row.getString("rfid_uid")));
+                    } else {
+                        resultHandler.handle(Future.succeededFuture(null));
                     }
-                    String storedHash = rows.iterator().next().getString("password_hash");
-                    boolean valid = BCrypt.checkpw(password, storedHash);
-                    resultHandler.handle(Future.succeededFuture(valid));
+                });
+    }
+
+    /** Aktualisiert die RFID-UID des Benutzers in der Datenbank. */
+    public void updateRfidForUser(String username, String rfidUid, Handler<AsyncResult<Void>> resultHandler) {
+        String rfid = (rfidUid != null && !rfidUid.isBlank()) ? rfidUid.trim().replaceAll("\\s+", "").toUpperCase() : null;
+        String sql = "UPDATE users SET rfid_uid = ? WHERE username = ?";
+        jdbcPool.preparedQuery(sql)
+                .execute(Tuple.of(rfid, username), ar -> {
+                    if (ar.succeeded()) {
+                        resultHandler.handle(Future.succeededFuture());
+                    } else {
+                        resultHandler.handle(Future.failedFuture(ar.cause()));
+                    }
+                });
+                    }
+
+    /** Findet den Benutzernamen anhand der RFID-UID. */
+    public void findUsernameByRfidUid(String rfidUid, Handler<AsyncResult<String>> resultHandler) {
+        String sql = "SELECT username FROM users WHERE rfid_uid = ? LIMIT 1";
+        jdbcPool.preparedQuery(sql)
+                .execute(Tuple.of(rfidUid), ar -> {
+                    if (ar.succeeded() && ar.result().iterator().hasNext()) {
+                        Row row = ar.result().iterator().next();
+                        resultHandler.handle(Future.succeededFuture(row.getString("username")));
+                    } else {
+                        resultHandler.handle(Future.succeededFuture(null));
+                    }
                 });
     }
 }
+

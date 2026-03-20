@@ -1,5 +1,8 @@
 package com.example.database;
 
+/**
+ * DatabaseClient – JDBC-Pool für MariaDB, Singleton.
+ */
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +19,7 @@ public class DatabaseClient {
     private DatabaseClient() { // Singelton
     }
 
+    /** Initialisiert den JDBC-Pool mit der angegebenen Konfiguration. */
     public static void initialize(Vertx vertx, JsonObject config) {
         if (jdbcPool != null) {
             logger.warn("DatabaseClient is already initialized!");
@@ -49,6 +53,7 @@ public class DatabaseClient {
         }
     }
 
+    /** Liefert die Singleton-Instanz des JDBC-Pools. */
     public static JDBCPool getInstance() {
         if (jdbcPool == null) {
             throw new IllegalStateException("❌ DatabaseClient not initialized! Call initialize() first.");
@@ -56,6 +61,7 @@ public class DatabaseClient {
         return jdbcPool;
     }
 
+    /** Prüft, ob alle erforderlichen DB-Konfigurationsparameter vorhanden sind. */
     private static void validateConfig(JsonObject config) {
         logger.info("🔍 Checking Config: {}", config.encodePrettily());
 
@@ -66,6 +72,7 @@ public class DatabaseClient {
         }
     }
 
+    /** Testet die Datenbankverbindung mit SELECT 1. */
     private static void testDatabaseConnection() {
         jdbcPool.query("SELECT 1").execute()
                 .onSuccess(rows -> logger.info("✅ Database connection test successful!"))

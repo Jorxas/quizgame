@@ -1,5 +1,8 @@
 package com.example.game;
 
+/**
+ * Game-Repository – DB-Zugriff für Sessions, Fragen, Antworten, Ergebnisse.
+ */
 import com.example.database.DatabaseClient;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -64,6 +67,29 @@ public class GameRepository {
             }
             long total = ((Number) row.getValue("total")).longValue();
             Number readyVal = (Number) row.getValue("ready_count");
+            long readyCount = readyVal != null ? readyVal.longValue() : 0;
+            resultHandler.handle(Future.succeededFuture(total > 0 && readyCount == total));
+        });
+    }
+
+    /** Prüft, ob alle verbundenen Spieler (Controller nicht OFFLINE) ready sind. */
+    public void areConnectedPlayersReady(long sessionId, Handler<AsyncResult<Boolean>> resultHandler) {
+        String sql = "SELECT COUNT(*) AS connected_total, SUM(CASE WHEN gsp.is_ready = 1 THEN 1 ELSE 0 END) AS connected_ready " +
+                "FROM game_session_players gsp JOIN controllers c ON c.id = gsp.controller_id " +
+                "WHERE gsp.game_session_id = ? AND c.status != 'OFFLINE'";
+        jdbcPool.preparedQuery(sql).execute(Tuple.of(sessionId), ar -> {
+            if (ar.failed()) {
+                resultHandler.handle(Future.failedFuture(ar.cause()));
+                return;
+            }
+            Row row = ar.result().iterator().hasNext() ? ar.result().iterator().next() : null;
+            if (row == null) {
+                resultHandler.handle(Future.succeededFuture(false));
+                return;
+            }
+            Number totalVal = (Number) row.getValue("connected_total");
+            Number readyVal = (Number) row.getValue("connected_ready");
+            long total = totalVal != null ? totalVal.longValue() : 0;
             long readyCount = readyVal != null ? readyVal.longValue() : 0;
             resultHandler.handle(Future.succeededFuture(total > 0 && readyCount == total));
         });
@@ -282,11 +308,15 @@ public class GameRepository {
         });
     }
 
-    /** Berechnet Session-Ergebnisse. */
+    /** Berechnet Session-Ergebnisse (alle Spieler, Offline-Spieler mit 0 Punkten). */
     public void computeSessionResults(long sessionId, Handler<AsyncResult<JsonArray>> resultHandler) {
         String sql = "INSERT INTO game_session_results (game_session_id, user_id, total_points, total_response_time_ms, correct_count, answered_count) " +
-                "SELECT ga.game_session_id, ga.user_id, SUM(ga.points_awarded), SUM(ga.response_time_ms), SUM(ga.is_correct), COUNT(*) " +
-                "FROM game_answers ga WHERE ga.game_session_id = ? GROUP BY ga.game_session_id, ga.user_id " +
+                "SELECT gsp.game_session_id, gsp.user_id, " +
+                "COALESCE(SUM(ga.points_awarded), 0), COALESCE(SUM(ga.response_time_ms), 0), " +
+                "COALESCE(SUM(ga.is_correct), 0), COUNT(ga.id) " +
+                "FROM game_session_players gsp " +
+                "LEFT JOIN game_answers ga ON ga.user_id = gsp.user_id AND ga.game_session_id = gsp.game_session_id " +
+                "WHERE gsp.game_session_id = ? GROUP BY gsp.game_session_id, gsp.user_id " +
                 "ON DUPLICATE KEY UPDATE total_points = VALUES(total_points), total_response_time_ms = VALUES(total_response_time_ms), " +
                 "correct_count = VALUES(correct_count), answered_count = VALUES(answered_count)";
         jdbcPool.preparedQuery(sql).execute(Tuple.of(sessionId), ar -> {
@@ -327,6 +357,42 @@ public class GameRepository {
         });
     }
 
+    /** Zählt Spieler mit verbundenem Controller (status != OFFLINE) in der Session. */
+    public void countConnectedPlayersInSession(long sessionId, Handler<AsyncResult<Integer>> resultHandler) {
+        String sql = "SELECT COUNT(*) AS cnt FROM game_session_players gsp " +
+                "JOIN controllers c ON c.id = gsp.controller_id " +
+                "WHERE gsp.game_session_id = ? AND c.status != 'OFFLINE'";
+        jdbcPool.preparedQuery(sql).execute(Tuple.of(sessionId), ar -> {
+            if (ar.failed()) {
+                resultHandler.handle(Future.failedFuture(ar.cause()));
+                return;
+            }
+            int count = ar.result().iterator().hasNext()
+                    ? ar.result().iterator().next().getInteger("cnt")
+                    : 0;
+            resultHandler.handle(Future.succeededFuture(count));
+        });
+    }
+
+    /** Liefert Controller-IDs (z.B. MAC) der Spieler einer Session mit gebundenem Controller. */
+    public void fetchControllerIdsForSession(long sessionId, Handler<AsyncResult<List<String>>> resultHandler) {
+        String sql = "SELECT c.controller_id FROM game_session_players gsp " +
+                "JOIN controllers c ON c.id = gsp.controller_id " +
+                "WHERE gsp.game_session_id = ? AND c.controller_id IS NOT NULL";
+        jdbcPool.preparedQuery(sql).execute(Tuple.of(sessionId), ar -> {
+            if (ar.failed()) {
+                resultHandler.handle(Future.failedFuture(ar.cause()));
+                return;
+            }
+            List<String> ids = new ArrayList<>();
+            for (Row row : ar.result()) {
+                String cid = row.getString("controller_id");
+                if (cid != null && !cid.isBlank()) ids.add(cid);
+            }
+            resultHandler.handle(Future.succeededFuture(ids));
+        });
+    }
+
     /** Liefert Spieler einer Session. */
     public void fetchSessionPlayers(long sessionId, Handler<AsyncResult<List<String>>> resultHandler) {
         String sql = "SELECT u.username FROM game_session_players gsp JOIN users u ON u.id = gsp.user_id WHERE gsp.game_session_id = ?";
@@ -359,25 +425,34 @@ public class GameRepository {
     }
 
     private void doResetPlayersAndState(long sessionId, Handler<AsyncResult<JsonArray>> resultHandler) {
-        jdbcPool.preparedQuery("UPDATE game_session_players SET is_ready = 0 WHERE game_session_id = ?").execute(Tuple.of(sessionId), updateAr -> {
-            if (updateAr.failed()) {
-                resultHandler.handle(Future.failedFuture(updateAr.cause()));
+        String removeOffline = "DELETE gsp FROM game_session_players gsp " +
+                "JOIN controllers c ON c.id = gsp.controller_id " +
+                "WHERE gsp.game_session_id = ? AND c.status = 'OFFLINE'";
+        jdbcPool.preparedQuery(removeOffline).execute(Tuple.of(sessionId), removeAr -> {
+            if (removeAr.failed()) {
+                resultHandler.handle(Future.failedFuture(removeAr.cause()));
                 return;
             }
-            jdbcPool.preparedQuery("UPDATE game_sessions SET state = 'LOBBY' WHERE id = ?").execute(Tuple.of(sessionId), stateAr -> {
-                if (stateAr.failed()) {
-                    resultHandler.handle(Future.failedFuture(stateAr.cause()));
+            jdbcPool.preparedQuery("UPDATE game_session_players SET is_ready = 0 WHERE game_session_id = ?").execute(Tuple.of(sessionId), updateAr -> {
+                if (updateAr.failed()) {
+                    resultHandler.handle(Future.failedFuture(updateAr.cause()));
                     return;
                 }
-                String sql = "SELECT u.username FROM game_session_players gsp JOIN users u ON u.id = gsp.user_id WHERE gsp.game_session_id = ?";
-                jdbcPool.preparedQuery(sql).execute(Tuple.of(sessionId), userAr -> {
-                    if (userAr.failed()) {
-                        resultHandler.handle(Future.failedFuture(userAr.cause()));
+                jdbcPool.preparedQuery("UPDATE game_sessions SET state = 'LOBBY' WHERE id = ?").execute(Tuple.of(sessionId), stateAr -> {
+                    if (stateAr.failed()) {
+                        resultHandler.handle(Future.failedFuture(stateAr.cause()));
                         return;
                     }
-                    JsonArray usernames = new JsonArray();
-                    for (Row row : userAr.result()) usernames.add(row.getString("username"));
-                    resultHandler.handle(Future.succeededFuture(usernames));
+                    String sql = "SELECT u.username FROM game_session_players gsp JOIN users u ON u.id = gsp.user_id WHERE gsp.game_session_id = ?";
+                    jdbcPool.preparedQuery(sql).execute(Tuple.of(sessionId), userAr -> {
+                        if (userAr.failed()) {
+                            resultHandler.handle(Future.failedFuture(userAr.cause()));
+                            return;
+                        }
+                        JsonArray usernames = new JsonArray();
+                        for (Row row : userAr.result()) usernames.add(row.getString("username"));
+                        resultHandler.handle(Future.succeededFuture(usernames));
+                    });
                 });
             });
         });

@@ -1,5 +1,8 @@
 package com.example.object;
 
+/**
+ * Object-Repository – DB-Zugriff auf objects-Tabelle.
+ */
 import com.example.database.DatabaseClient;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;

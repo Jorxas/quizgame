@@ -1,5 +1,8 @@
 package com.example.controllers;
 
+/**
+ * Controllers-Repository – DB-Zugriff auf Controller-Tabelle.
+ */
 import com.example.database.DatabaseClient;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -89,7 +92,7 @@ public class ControllersRepository {
                     try {
                         RowSet<Row> rows = ar.result();
                         if (!rows.iterator().hasNext()) {
-                            resultHandler.handle(Future.failedFuture("Controller not found"));
+                            resultHandler.handle(Future.failedFuture("Controller nicht gefunden."));
                             return;
                         }
                         Row row = rows.iterator().next();
@@ -104,6 +107,69 @@ public class ControllersRepository {
                         resultHandler.handle(Future.succeededFuture(status));
                     } catch (Exception e) {
                         resultHandler.handle(Future.failedFuture(e));
+                    }
+                });
+    }
+
+    /** Erstellt Controller falls nicht vorhanden (MQTT-Register), aktualisiert last_seen_at. */
+    public void createControllerIfNotExists(String controllerId, String controllerType, Handler<AsyncResult<Void>> resultHandler) {
+        String type = ("HARDWARE".equalsIgnoreCase(controllerType)) ? "HARDWARE" : "WEB";
+        String sql = "INSERT INTO controllers (controller_id, controller_type, status) VALUES (?, ?, 'FREE') " +
+                "ON DUPLICATE KEY UPDATE last_seen_at = CURRENT_TIMESTAMP, controller_type = VALUES(controller_type)";
+        jdbcPool.preparedQuery(sql)
+                .execute(Tuple.of(controllerId, type), ar -> {
+                    if (ar.succeeded()) {
+                        resultHandler.handle(Future.succeededFuture());
+                    } else {
+                        resultHandler.handle(Future.failedFuture(ar.cause()));
+                    }
+                });
+    }
+
+    /** Aktualisiert last_seen_at des Controllers (z.B. bei MQTT-Register oder Pong). */
+    public void updateLastSeen(String controllerId, Handler<AsyncResult<Void>> resultHandler) {
+        String sql = "UPDATE controllers SET last_seen_at = CURRENT_TIMESTAMP WHERE controller_id = ?";
+        jdbcPool.preparedQuery(sql)
+                .execute(Tuple.of(controllerId), ar -> {
+                    if (ar.succeeded()) {
+                        resultHandler.handle(Future.succeededFuture());
+                    } else {
+                        resultHandler.handle(Future.failedFuture(ar.cause()));
+                    }
+                });
+    }
+
+    /** Setzt den Status des Controllers (z.B. OFFLINE). */
+    public void updateStatus(String controllerId, String status, Handler<AsyncResult<Void>> resultHandler) {
+        String sql = "UPDATE controllers SET status = ? WHERE controller_id = ?";
+        jdbcPool.preparedQuery(sql)
+                .execute(Tuple.of(status, controllerId), ar -> {
+                    if (ar.succeeded()) {
+                        resultHandler.handle(Future.succeededFuture());
+                    } else {
+                        resultHandler.handle(Future.failedFuture(ar.cause()));
+                    }
+                });
+    }
+
+    /** Hebt die Spielerzuordnung auf und setzt Controller auf FREE (z.B. bei Lobby-Austritt). */
+    public void unbindControllerForUser(String username, Handler<AsyncResult<Void>> resultHandler) {
+        String sql = "UPDATE controllers SET status = 'FREE', assigned_user_id = NULL WHERE assigned_user_id = (SELECT id FROM users WHERE username = ? LIMIT 1)";
+        jdbcPool.preparedQuery(sql).execute(Tuple.of(username), ar -> {
+            if (ar.succeeded()) resultHandler.handle(Future.succeededFuture());
+            else resultHandler.handle(Future.failedFuture(ar.cause()));
+        });
+    }
+
+    /** Setzt Controller auf OFFLINE und hebt die Spielerzuordnung auf. */
+    public void disconnectController(String controllerId, Handler<AsyncResult<Void>> resultHandler) {
+        String sql = "UPDATE controllers SET status = 'OFFLINE', assigned_user_id = NULL WHERE controller_id = ?";
+        jdbcPool.preparedQuery(sql)
+                .execute(Tuple.of(controllerId), ar -> {
+                    if (ar.succeeded()) {
+                        resultHandler.handle(Future.succeededFuture());
+                    } else {
+                        resultHandler.handle(Future.failedFuture(ar.cause()));
                     }
                 });
     }

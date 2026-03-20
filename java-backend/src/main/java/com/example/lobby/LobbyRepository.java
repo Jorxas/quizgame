@@ -1,5 +1,8 @@
 package com.example.lobby;
 
+/**
+ * Lobby-Repository – DB-Zugriff für game_session_players, Lobby-Status.
+ */
 import com.example.database.DatabaseClient;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -35,50 +38,28 @@ public class LobbyRepository {
         });
     }
 
-    /** Erstellt neue LOBBY-Session (oder ersetzt bestehende). */
+    /** Erstellt neue LOBBY-Session. Beendet zuvor alle laufenden Sessions (LOBBY, COUNTDOWN, QUESTION, EVALUATION). */
     public void createNewLobbySession(Handler<AsyncResult<Void>> resultHandler) {
-        jdbcPool.preparedQuery("SELECT id FROM game_sessions WHERE state = 'LOBBY' ORDER BY id DESC LIMIT 1")
-                .execute(Tuple.tuple(), checkAr -> {
-                    if (checkAr.failed()) {
-                        resultHandler.handle(Future.failedFuture(checkAr.cause()));
+        jdbcPool.preparedQuery("UPDATE game_sessions SET state = 'ENDED' WHERE state != 'ENDED'")
+                .execute(Tuple.tuple(), updateAr -> {
+                    if (updateAr.failed()) {
+                        resultHandler.handle(Future.failedFuture(updateAr.cause()));
                         return;
                     }
-                    boolean hasLobby = checkAr.result().iterator().hasNext();
-                    if (hasLobby) {
-                        jdbcPool.preparedQuery("UPDATE game_sessions SET state = 'ENDED' WHERE state = 'LOBBY'")
-                                .execute(Tuple.tuple(), updateAr -> {
-                                    if (updateAr.failed()) {
-                                        resultHandler.handle(Future.failedFuture(updateAr.cause()));
-                                        return;
-                                    }
-                                    jdbcPool.preparedQuery("INSERT INTO game_sessions (round_length, state) VALUES ('Q5', 'LOBBY')")
-                                            .execute(Tuple.tuple(), insAr -> {
-                                                resultHandler.handle(insAr.succeeded() ? Future.succeededFuture() : Future.failedFuture(insAr.cause()));
-                                            });
-                                });
-                    } else {
-                        jdbcPool.preparedQuery("SELECT 1 FROM game_sessions LIMIT 1")
-                                .execute(Tuple.tuple(), anyAr -> {
-                                    boolean hasAny = anyAr.succeeded() && anyAr.result().iterator().hasNext();
-                                    if (!hasAny) {
-                                        jdbcPool.preparedQuery("INSERT INTO game_sessions (round_length, state) VALUES ('Q5', 'LOBBY')")
-                                                .execute(Tuple.tuple(), insAr -> {
-                                                    resultHandler.handle(insAr.succeeded() ? Future.succeededFuture() : Future.failedFuture(insAr.cause()));
-                                                });
-                                    } else {
-                                        resultHandler.handle(Future.succeededFuture());
-                                    }
-                                });
-                    }
+                    jdbcPool.preparedQuery("INSERT INTO game_sessions (round_length, state) VALUES ('Q5', 'LOBBY')")
+                            .execute(Tuple.tuple(), insAr -> {
+                                resultHandler.handle(insAr.succeeded() ? Future.succeededFuture() : Future.failedFuture(insAr.cause()));
+                            });
                 });
     }
 
-    /** Liefert Spieler der aktuellen Lobby mit ready-Status. */
+    /** Liefert Spieler der aktuellen Lobby mit ready-Status, Controller-ID und Controller-Status. */
     public void fetchPlayersWithStatus(Handler<AsyncResult<JsonArray>> resultHandler) {
-        String sql = "SELECT u.username, gsp.is_ready " +
+        String sql = "SELECT u.username, gsp.is_ready, c.controller_id, c.status AS controller_status " +
                 "FROM game_session_players gsp " +
                 "JOIN game_sessions gs ON gs.id = gsp.game_session_id " +
                 "JOIN users u ON u.id = gsp.user_id " +
+                "LEFT JOIN controllers c ON c.id = gsp.controller_id " +
                 "WHERE gs.state = 'LOBBY' AND gs.id = (SELECT MAX(id) FROM game_sessions WHERE state = 'LOBBY')";
 
         jdbcPool.preparedQuery(sql)
@@ -90,9 +71,17 @@ public class LobbyRepository {
                             String username = row.getString("username");
                             Boolean isReady = row.getBoolean("is_ready");
                             boolean ready = Boolean.TRUE.equals(isReady);
+                            String controllerId = row.getString("controller_id");
+                            String controllerStatus = row.getString("controller_status");
                             JsonObject playerJson = new JsonObject()
                                     .put("username", username)
                                     .put("ready", ready);
+                            if (controllerId != null && !controllerId.isBlank()) {
+                                playerJson.put("controllerId", controllerId);
+                            }
+                            if (controllerStatus != null && !controllerStatus.isBlank()) {
+                                playerJson.put("controllerStatus", controllerStatus);
+                            }
                             players.add(playerJson);
                         }
                         resultHandler.handle(Future.succeededFuture(players));
@@ -118,43 +107,75 @@ public class LobbyRepository {
                     }
                     Long sessionId = lobbyRows.next().getLong("id");
 
-                    jdbcPool.preparedQuery("SELECT id FROM users WHERE username = ? LIMIT 1")
-                            .execute(Tuple.of(username), userAr -> {
-                                if (userAr.failed()) {
-                                    resultHandler.handle(Future.failedFuture(userAr.cause()));
+                    jdbcPool.preparedQuery("SELECT COUNT(*) AS cnt FROM game_session_players WHERE game_session_id = ?")
+                            .execute(Tuple.of(sessionId), countAr -> {
+                                if (countAr.failed()) {
+                                    resultHandler.handle(Future.failedFuture(countAr.cause()));
                                     return;
                                 }
-                                var userRows = userAr.result().iterator();
-                                if (!userRows.hasNext()) {
-                                    resultHandler.handle(Future.failedFuture("Benutzer nicht gefunden"));
+                                int playerCount = countAr.result().iterator().hasNext()
+                                        ? countAr.result().iterator().next().getInteger("cnt")
+                                        : 0;
+                                if (playerCount >= 99) {
+                                    resultHandler.handle(Future.failedFuture("Lobby ist voll (max. 99 Spieler)."));
                                     return;
                                 }
-                                Long userId = userRows.next().getLong("id");
+                                doAddPlayerToLobby(sessionId, username, resultHandler);
+                            });
+                });
+    }
 
-                                jdbcPool.preparedQuery("SELECT id FROM controllers WHERE assigned_user_id = ? AND status = 'ASSIGNED' LIMIT 1")
-                                        .execute(Tuple.of(userId), controllerAr -> {
-                                            if (controllerAr.failed()) {
-                                                resultHandler.handle(Future.failedFuture(controllerAr.cause()));
+    /** Fügt Spieler intern zur Lobby hinzu (Benutzer- und Controller-ID erforderlich). */
+    private void doAddPlayerToLobby(Long sessionId, String username, Handler<AsyncResult<Void>> resultHandler) {
+        jdbcPool.preparedQuery("SELECT id FROM users WHERE username = ? LIMIT 1")
+                .execute(Tuple.of(username), userAr -> {
+                    if (userAr.failed()) {
+                        resultHandler.handle(Future.failedFuture(userAr.cause()));
+                        return;
+                    }
+                    var userRows = userAr.result().iterator();
+                    if (!userRows.hasNext()) {
+                        resultHandler.handle(Future.failedFuture("Benutzer nicht gefunden"));
+                        return;
+                    }
+                    Long userId = userRows.next().getLong("id");
+
+                    jdbcPool.preparedQuery("SELECT id FROM controllers WHERE assigned_user_id = ? AND status = 'ASSIGNED' LIMIT 1")
+                            .execute(Tuple.of(userId), controllerAr -> {
+                                if (controllerAr.failed()) {
+                                    resultHandler.handle(Future.failedFuture(controllerAr.cause()));
+                                    return;
+                                }
+                                var controllerRows = controllerAr.result().iterator();
+                                if (!controllerRows.hasNext()) {
+                                    resultHandler.handle(Future.failedFuture("Kein Controller mit diesem Benutzer verbunden"));
+                                    return;
+                                }
+                                Long controllerId = controllerRows.next().getLong("id");
+
+                                jdbcPool.preparedQuery("SELECT 1 FROM game_session_players WHERE game_session_id = ? AND user_id = ? LIMIT 1")
+                                        .execute(Tuple.of(sessionId, userId), checkAr -> {
+                                            if (checkAr.failed()) {
+                                                resultHandler.handle(Future.failedFuture(checkAr.cause()));
                                                 return;
                                             }
-                                            var controllerRows = controllerAr.result().iterator();
-                                            if (!controllerRows.hasNext()) {
-                                                resultHandler.handle(Future.failedFuture("Kein Controller mit diesem Benutzer verbunden"));
+                                            if (checkAr.result().iterator().hasNext()) {
+                                                resultHandler.handle(Future.failedFuture("Du bist bereits in der Lobby."));
                                                 return;
                                             }
-                                            Long controllerId = controllerRows.next().getLong("id");
 
-                                            jdbcPool.preparedQuery("SELECT 1 FROM game_session_players WHERE game_session_id = ? AND user_id = ? LIMIT 1")
-                                                    .execute(Tuple.of(sessionId, userId), checkAr -> {
-                                                        if (checkAr.failed()) {
-                                                            resultHandler.handle(Future.failedFuture(checkAr.cause()));
+                                            jdbcPool.preparedQuery("SELECT COUNT(*) AS cnt FROM game_session_players WHERE game_session_id = ?")
+                                                    .execute(Tuple.of(sessionId), finalCountAr -> {
+                                                        if (finalCountAr.failed()) {
+                                                            resultHandler.handle(Future.failedFuture(finalCountAr.cause()));
                                                             return;
                                                         }
-                                                        if (checkAr.result().iterator().hasNext()) {
-                                                            resultHandler.handle(Future.failedFuture("Du bist bereits in der Lobby."));
+                                                        int cnt = finalCountAr.result().iterator().hasNext()
+                                                                ? finalCountAr.result().iterator().next().getInteger("cnt") : 0;
+                                                        if (cnt >= 99) {
+                                                            resultHandler.handle(Future.failedFuture("Lobby ist voll (max. 99 Spieler)."));
                                                             return;
                                                         }
-
                                                         String sql = "INSERT INTO game_session_players (game_session_id, user_id, controller_id, is_ready) VALUES (?, ?, ?, 0)";
                                                         jdbcPool.preparedQuery(sql)
                                                                 .execute(Tuple.of(sessionId, userId, controllerId), insertAr -> {
@@ -167,6 +188,29 @@ public class LobbyRepository {
                                                     });
                                         });
                             });
+                });
+    }
+
+    /** Entfernt Spieler aus der aktuellen Lobby. */
+    public void removePlayerFromLobby(String username, Handler<AsyncResult<Void>> resultHandler) {
+        String sql = "DELETE gsp FROM game_session_players gsp " +
+                "JOIN game_sessions gs ON gs.id = gsp.game_session_id " +
+                "JOIN users u ON u.id = gsp.user_id " +
+                "WHERE gs.state IN ('LOBBY', 'COUNTDOWN') " +
+                "AND gs.id = (SELECT id FROM game_sessions WHERE state IN ('LOBBY', 'COUNTDOWN') ORDER BY id DESC LIMIT 1) " +
+                "AND u.username = ?";
+
+        jdbcPool.preparedQuery(sql)
+                .execute(Tuple.of(username), ar -> {
+                    if (ar.failed()) {
+                        resultHandler.handle(Future.failedFuture(ar.cause()));
+                        return;
+                    }
+                    if (ar.result().rowCount() == 0) {
+                        resultHandler.handle(Future.failedFuture("Spieler nicht in der aktuellen Lobby gefunden."));
+                        return;
+                    }
+                    resultHandler.handle(Future.succeededFuture());
                 });
     }
 
@@ -185,7 +229,7 @@ public class LobbyRepository {
                         return;
                     }
                     if (ar.result().rowCount() == 0) {
-                        resultHandler.handle(Future.failedFuture("Player not found in lobby"));
+                        resultHandler.handle(Future.failedFuture("Spieler nicht in der Lobby gefunden."));
                         return;
                     }
                     resultHandler.handle(Future.succeededFuture());
@@ -209,7 +253,7 @@ public class LobbyRepository {
                     }
                     RowSet<Row> rows = ar.result();
                     if (!rows.iterator().hasNext()) {
-                        resultHandler.handle(Future.failedFuture("Player not found in lobby"));
+                        resultHandler.handle(Future.failedFuture("Spieler nicht in der Lobby gefunden."));
                         return;
                     }
                     Row row = rows.iterator().next();

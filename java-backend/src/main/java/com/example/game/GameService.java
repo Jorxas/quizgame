@@ -1,5 +1,8 @@
 package com.example.game;
 
+/**
+ * Game-Service – Spielablauf, Fragenauswahl, Bewertung, Highscores.
+ */
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -88,7 +91,7 @@ public class GameService {
                 resultHandler.handle(Future.failedFuture(new IllegalStateException("Keine Lobby-Session vorhanden")));
                 return;
             }
-            gameRepository.areAllPlayersReady(sessionId, readyAr -> {
+            gameRepository.areConnectedPlayersReady(sessionId, readyAr -> {
                 if (readyAr.failed()) {
                     resultHandler.handle(Future.failedFuture(readyAr.cause()));
                     return;
@@ -108,6 +111,7 @@ public class GameService {
         });
     }
 
+    /** Konvertiert JsonArray zu Liste von Long. */
     private static List<Long> toLongList(JsonArray arr) {
         List<Long> list = new ArrayList<>();
         if (arr != null) {
@@ -119,6 +123,7 @@ public class GameService {
         return list;
     }
 
+    /** Konvertiert JsonArray zu Liste von String. */
     private static List<String> toStringList(JsonArray arr) {
         List<String> list = new ArrayList<>();
         if (arr != null) {

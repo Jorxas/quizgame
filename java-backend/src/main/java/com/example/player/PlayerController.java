@@ -1,5 +1,8 @@
 package com.example.player;
 
+/**
+ * Player-Controller – Controller an Spieler binden (Bind).
+ */
 import com.example.http.HttpController;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.Router;

@@ -1,5 +1,9 @@
 package com.example.lobby;
 
+/**
+ * Lobby-Service – Spieler hinzufügen/entfernen, Ready-Status, Lobby-Status.
+ */
+import com.example.controllers.ControllersRepository;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
@@ -8,9 +12,11 @@ import io.vertx.core.json.JsonObject;
 public class LobbyService {
 
     private final LobbyRepository lobbyRepository;
+    private final ControllersRepository controllersRepository;
 
     public LobbyService() {
         this.lobbyRepository = new LobbyRepository();
+        this.controllersRepository = new ControllersRepository();
     }
 
     /** Prüft, ob Benutzer bereits in der aktuellen Lobby ist. */
@@ -33,7 +39,14 @@ public class LobbyService {
         lobbyRepository.addPlayerToLobby(username, resultHandler);
     }
 
-    /** Aktualisiert ready-Status eines Spielers. */
+    /** Entfernt Spieler aus der Lobby und hebt Controller-Zuordnung auf. */
+    public void removePlayerFromLobby(String username, Handler<AsyncResult<Void>> resultHandler) {
+        controllersRepository.unbindControllerForUser(username, unused -> {
+            lobbyRepository.removePlayerFromLobby(username, resultHandler);
+        });
+    }
+
+    /** Aktualisiert den Ready-Status eines Spielers in der Lobby. */
     public void updatePlayerReady(String playerId, boolean ready, Handler<AsyncResult<Void>> resultHandler) {
         lobbyRepository.updatePlayerReady(playerId, ready, resultHandler);
     }

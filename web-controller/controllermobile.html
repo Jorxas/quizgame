@@ -1,0 +1,651 @@
+<!doctype html>
+<!--
+  Web-Controller Mobile – responsive Ansicht für Smartphones/Tablets
+  Gleiche Funktionalität wie controller.html, angepasstes Layout
+-->
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Web-Controller Mobile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <style>
+/* Web-Controller Mobile – eingebettete Styles (navy, cream, Playfair, DM Sans) */
+:root {
+  --navy:        #1a2744;
+  --navy-light:  #243258;
+  --cream:       #f5f0e8;
+  --cream-dark:  #ede7d9;
+  --cream-mid:   #f9f6f0;
+  --gold:        #b8913a;
+  --gold-light:  #d4aa5a;
+  --gold-dim:    rgba(184,145,58,0.15);
+  --blue-acc:    #3b6fd4;
+  --green-acc:   #2a8050;
+  --orange-acc:  #c96a10;
+  --red-acc:     #a03030;
+  --text-dark:   #1a2744;
+  --text-mid:    #4a5568;
+  --text-soft:   #8a97aa;
+  --border:      rgba(26,39,68,0.12);
+  --border-h:    rgba(26,39,68,0.28);
+  --radius:      14px;
+  --radius-sm:   8px;
+  --shadow-md:   0 4px 20px rgba(26,39,68,0.1);
+  --shadow-lg:   0 8px 40px rgba(26,39,68,0.14);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--cream);
+  color: var(--text-dark);
+  min-height: 100vh;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px 16px 40px;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(26,39,68,0.06) 0%, transparent 60%),
+    url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%231a2744' fill-opacity='0.025'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+body::before {
+  content: '';
+  position: fixed; top: 0; left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--navy), var(--blue-acc), var(--gold), var(--blue-acc), var(--navy));
+  background-size: 200% 100%;
+  animation: shimmer 6s linear infinite;
+  z-index: 100;
+}
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.controller-card {
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
+  width: 100%;
+  max-width: 440px;
+  overflow: hidden;
+  animation: fade-up .4s ease both;
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.card-header {
+  background: var(--navy);
+  padding: 22px 26px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  position: relative;
+  overflow: hidden;
+}
+.card-header::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 60%);
+  pointer-events: none;
+}
+.card-header::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--gold));
+  opacity: .7;
+}
+.card-header .icon { font-size: 22px; }
+.card-header h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: .2px;
+  word-wrap: break-word;
+}
+.card-body {
+  padding: 24px 26px 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.player-info {
+  background: var(--cream-mid);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+  overflow: hidden;
+}
+.player-info::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--gold-light), transparent);
+  opacity: .6;
+}
+.player-id {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--navy);
+  letter-spacing: 2px;
+  word-break: break-all;
+}
+.player-name {
+  font-size: 14px;
+  color: var(--text-mid);
+  font-weight: 500;
+  word-wrap: break-word;
+  text-align: center;
+}
+.player-name span { color: var(--navy); font-weight: 600; }
+.player-status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 2px;
+}
+.status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--green-acc);
+  box-shadow: 0 0 6px rgba(42,128,80,0.5);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%       { transform: scale(1.3); opacity: .7; }
+}
+.status-text { color: var(--green-acc); }
+.player-status.not-ready .status-dot {
+  background: var(--text-soft);
+  box-shadow: 0 0 6px rgba(138,151,170,0.4);
+}
+.player-status.not-ready .status-text { color: var(--text-soft); }
+.player-status.is-playing .status-dot {
+  background: var(--blue-acc);
+  box-shadow: 0 0 6px rgba(59,111,212,0.5);
+}
+.player-status.is-playing .status-text { color: var(--blue-acc); }
+.answer-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-auto-rows: 1fr;
+  gap: 14px;
+  min-height: 160px;
+}
+.answer-btn {
+  border: 2px solid transparent;
+  border-radius: var(--radius);
+  padding: 14px 12px;
+  min-height: 0;
+  font-family: 'Playfair Display', serif;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.3;
+  cursor: pointer;
+  transition: all .2s;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  white-space: normal;
+  word-wrap: break-word;
+}
+.answer-btn::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: rgba(255,255,255,0.12);
+  opacity: 0;
+  transition: opacity .2s;
+}
+.answer-btn:hover::before { opacity: 1; }
+.answer-btn:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+.answer-btn:active { transform: translateY(0); }
+.answer-btn.a {
+  background: linear-gradient(145deg, #2d5fc4, #1e4199);
+  border-color: rgba(59,111,212,0.4);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(30,65,153,0.3);
+}
+.answer-btn.b {
+  background: linear-gradient(145deg, #2e9460, #1f7048);
+  border-color: rgba(42,128,80,0.4);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(31,112,72,0.3);
+}
+.answer-btn.c {
+  background: linear-gradient(145deg, #d4862a, #b86a10);
+  border-color: rgba(212,134,42,0.4);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(184,106,16,0.3);
+}
+.answer-btn.d {
+  background: linear-gradient(145deg, #b83040, #8a1f2c);
+  border-color: rgba(184,48,64,0.4);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(138,31,44,0.3);
+}
+.answer-grid.is-locked .answer-btn {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+.answer-btn.is-selected {
+  outline: 3px solid rgba(255,255,255,0.7);
+  outline-offset: -4px;
+}
+.hint-box {
+  background: var(--gold-dim);
+  border: 1px solid rgba(184,145,58,0.25);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 12px;
+  color: var(--gold);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  word-wrap: break-word;
+  line-height: 1.4;
+}
+.hint-box::before { content: 'ℹ'; font-size: 14px; }
+.ready-row { display: flex; justify-content: flex-end; }
+.ready-btn {
+  border: 1px solid rgba(42,128,80,0.35);
+  border-radius: var(--radius-sm);
+  padding: 9px 20px;
+  background: #eef8f2;
+  color: var(--green-acc);
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all .2s;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.ready-btn:hover {
+  background: #d8f2e4;
+  box-shadow: 0 2px 8px rgba(42,128,80,0.15);
+  transform: translateY(-1px);
+}
+.ready-btn.is-waiting {
+  background: #fef8ec;
+  border-color: rgba(184,145,58,0.35);
+  color: var(--gold);
+}
+.score-display {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--gold);
+  margin-top: 6px;
+}
+.score-display span { font-size: 18px; color: var(--navy); }
+.countdown-overlay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 0;
+}
+.countdown-number {
+  font-family: 'Playfair Display', serif;
+  font-size: 72px;
+  font-weight: 700;
+  color: var(--navy);
+  animation: pulse-countdown 1s ease-in-out infinite;
+}
+@keyframes pulse-countdown {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: .8; }
+}
+.question-section {
+  background: var(--cream-mid);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+}
+.question-counter {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-soft);
+  margin-bottom: 6px;
+}
+.question-text {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--navy);
+  line-height: 1.5;
+}
+.result-feedback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  animation: fade-up .3s ease both;
+}
+.result-feedback.is-correct {
+  background: #e8f7ee;
+  color: var(--green-acc);
+  border: 1px solid rgba(42,128,80,0.3);
+}
+.result-feedback.is-wrong {
+  background: #fef0f0;
+  color: var(--red-acc);
+  border: 1px solid rgba(160,48,48,0.3);
+}
+    </style>
+  </head>
+  <body>
+    <div class="controller-card">
+      <div class="card-header">
+        <span class="icon">📱</span>
+        <h1>Web-Controller Mobile</h1>
+      </div>
+      <div class="card-body">
+        <div class="player-info">
+          <div class="player-id" id="controllerIdDisplay">—</div>
+          <div class="player-name">Spieler: <span id="controllerPlayerDisplay">—</span></div>
+          <div class="player-status not-ready">
+            <span class="status-dot"></span>
+            <span class="status-text" id="controllerStatus">Not ready</span>
+          </div>
+          <div class="score-display" id="scoreDisplay">Score: <span id="scoreValue">0</span></div>
+        </div>
+        <div class="countdown-overlay" id="countdownOverlay" style="display:none;">
+          <span class="countdown-number" id="countdownNumber">3</span>
+        </div>
+        <div class="result-feedback" id="resultFeedback" style="display:none;">
+          <span id="resultIcon"></span>
+          <span id="resultText"></span>
+        </div>
+        <div>
+          <div class="answer-grid" id="controllerAnswers">
+            <button type="button" class="answer-btn a" id="answerA">A</button>
+            <button type="button" class="answer-btn b" id="answerB">B (ready)</button>
+            <button type="button" class="answer-btn c" id="answerC">C</button>
+            <button type="button" class="answer-btn d" id="answerD">D (not ready)</button>
+          </div>
+        </div>
+        <div class="hint-box" id="hintBox">
+          Nach Antwort gesperrt bis zur nächsten Frage.
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <script>
+window.__ENV__ = {
+  MQTT_BROKER_URL:      "iti-mqtt.mni.thm.de",
+  MQTT_BROKER_PORT:     "9001",
+  MQTT_USERNAME:        "group-16",
+  MQTT_PASSWORD:        "r%^e{[FxW8Lp",
+  MQTT_MESSAGE_PREFIX:  "group-16/",
+};
+    </script>
+    <script>
+/* Web-Controller Mobile — MQTT-Verbindung, Zustandslogik (LOBBY/QUESTION/EVALUATION). */
+(function () {
+  var controllerId = "WEB-" + Math.random().toString(16).slice(2, 10).toUpperCase();
+  var controllerIdDisplay = document.getElementById("controllerIdDisplay");
+  var controllerPlayerDisplay = document.getElementById("controllerPlayerDisplay");
+  var controllerStatusText = document.getElementById("controllerStatus");
+  var controllerStatusBox = controllerStatusText ? controllerStatusText.closest(".player-status") : null;
+  var readyButton = document.getElementById("answerB");
+  var notReadyButton = document.getElementById("answerD");
+  var controllerAnswers = document.getElementById("controllerAnswers");
+  var countdownOverlay = document.getElementById("countdownOverlay");
+  var countdownNumber = document.getElementById("countdownNumber");
+  var scoreValue = document.getElementById("scoreValue");
+  var resultFeedback = document.getElementById("resultFeedback");
+  var resultIcon = document.getElementById("resultIcon");
+  var resultText = document.getElementById("resultText");
+  var hintBox = document.getElementById("hintBox");
+
+  var currentPlayerId = "";
+  var currentReady = false;
+  var client = null;
+  var prefix = "group-16/";
+  var subscribedStatusTopic = "";
+  var subscribedResultTopic = "";
+  var gameState = "LOBBY";
+  var currentQuestionId = 0;
+  var totalScore = 0;
+
+  /** Initialisiert den Controller und startet die MQTT-Verbindung. */
+  function initController() {
+    if (controllerIdDisplay) controllerIdDisplay.textContent = controllerId || "—";
+    connectMqtt();
+  }
+
+  /** Aktualisiert die Ready/Not-ready-Anzeige in der UI. */
+  function setReadyUi(ready) {
+    currentReady = !!ready;
+    updateStatusDisplay();
+    if (readyButton) readyButton.classList.toggle("is-selected", currentReady);
+    if (notReadyButton) notReadyButton.classList.toggle("is-selected", !currentReady);
+  }
+  /** Zeigt Status an: „Playing“ während des Spiels, sonst Ready/Not ready. */
+  function updateStatusDisplay() {
+    var isPlaying = gameState === "COUNTDOWN" || gameState === "QUESTION" || gameState === "EVALUATION";
+    var text = isPlaying ? "Playing" : (currentReady ? "Ready" : "Not ready");
+    if (controllerStatusText) controllerStatusText.textContent = text;
+    if (controllerStatusBox) {
+      controllerStatusBox.classList.toggle("ready", !isPlaying && currentReady);
+      controllerStatusBox.classList.toggle("not-ready", !isPlaying && !currentReady);
+      controllerStatusBox.classList.toggle("is-playing", isPlaying);
+    }
+  }
+
+  /** Zeigt den verbundenen Spieler und dessen Bereitschaft an. */
+  function setPlayerUi(playerId, ready) {
+    currentPlayerId = playerId || "";
+    if (controllerPlayerDisplay) controllerPlayerDisplay.textContent = currentPlayerId || "Nicht verbunden";
+    setReadyUi(ready);
+    subscribePlayerTopics();
+  }
+
+  /** Abonniert die spielerspezifischen MQTT-Topics (Status, Ergebnis). */
+  function subscribePlayerTopics() {
+    if (!client || !currentPlayerId) return;
+    var statusTopic = prefix + "player/" + currentPlayerId + "/status";
+    if (subscribedStatusTopic !== statusTopic) {
+      if (subscribedStatusTopic) client.unsubscribe(subscribedStatusTopic);
+      client.subscribe(statusTopic);
+      subscribedStatusTopic = statusTopic;
+    }
+    var resultTopic = prefix + "player/" + currentPlayerId + "/result";
+    if (subscribedResultTopic !== resultTopic) {
+      if (subscribedResultTopic) client.unsubscribe(subscribedResultTopic);
+      client.subscribe(resultTopic);
+      subscribedResultTopic = resultTopic;
+    }
+  }
+
+  /** Sendet den Bereitschaftsstatus (ready/not-ready) per MQTT. */
+  function publishReadyState(ready) {
+    if (!client || !currentPlayerId) return;
+    var topic = prefix + "player/" + currentPlayerId + "/ready";
+    client.publish(topic, JSON.stringify({ action: ready ? "ready" : "not-ready", ready: ready, playerId: currentPlayerId, controllerId: controllerId, ts: Date.now() }));
+  }
+
+  /** Sendet die gewählte Antwort (A/B/C/D) per MQTT. */
+  function publishAnswer(option) {
+    if (!client || !currentPlayerId || !currentQuestionId) return;
+    var topic = prefix + "player/" + currentPlayerId + "/answer";
+    client.publish(topic, JSON.stringify({ questionId: currentQuestionId, selectedOption: option, playerId: currentPlayerId, controllerId: controllerId, ts: Date.now() }));
+  }
+
+  /** Zeigt den Countdown bis zur nächsten Frage an. */
+  function showCountdown(tick) {
+    if (countdownOverlay) countdownOverlay.style.display = "flex";
+    if (countdownNumber) countdownNumber.textContent = tick;
+    if (resultFeedback) resultFeedback.style.display = "none";
+    if (controllerAnswers) controllerAnswers.style.display = "none";
+  }
+
+  /** Zeigt die aktuelle Frage mit leeren Antwort-Buttons an. */
+  function showQuestion(data) {
+    if (countdownOverlay) countdownOverlay.style.display = "none";
+    if (resultFeedback) resultFeedback.style.display = "none";
+    currentQuestionId = data.questionId;
+    var btnA = document.getElementById("answerA"), btnB = document.getElementById("answerB");
+    var btnC = document.getElementById("answerC"), btnD = document.getElementById("answerD");
+    if (btnA) btnA.textContent = "A";
+    if (btnB) btnB.textContent = "B";
+    if (btnC) btnC.textContent = "C";
+    if (btnD) btnD.textContent = "D";
+    if (controllerAnswers) {
+      controllerAnswers.style.display = "grid";
+      controllerAnswers.classList.remove("is-locked");
+      controllerAnswers.querySelectorAll(".answer-btn").forEach(function (btn) { btn.classList.remove("is-selected"); });
+    }
+    if (hintBox) hintBox.textContent = "Wähle deine Antwort!";
+  }
+
+  /** Zeigt das Ergebnis (richtig/falsch) mit Punkten an. */
+  function showResult(data) {
+    if (resultFeedback) {
+      resultFeedback.style.display = "flex";
+      resultFeedback.className = "result-feedback " + (data.correct ? "is-correct" : "is-wrong");
+    }
+    if (resultIcon) resultIcon.textContent = data.correct ? "✓" : "✗";
+    if (resultText) resultText.textContent = data.correct ? "Richtig! +" + data.points.toFixed(1) + " Punkte" : "Falsch! Richtig: " + data.correctOption;
+    if (data.correct) totalScore += data.points;
+    if (scoreValue) scoreValue.textContent = totalScore.toFixed(1);
+  }
+
+  /** Zeigt „Auswertung läuft“ und sperrt die Antwort-Buttons. */
+  function showEvaluation() {
+    if (hintBox) hintBox.textContent = "Auswertung läuft...";
+    if (controllerAnswers) controllerAnswers.classList.add("is-locked");
+  }
+
+  /** Setzt alles zurück und zeigt das Spielende mit End-Score. */
+  function showEnded(data) {
+    gameState = "LOBBY";
+    currentQuestionId = 0;
+    if (countdownOverlay) countdownOverlay.style.display = "none";
+    if (resultFeedback) resultFeedback.style.display = "none";
+    if (hintBox) hintBox.textContent = "Spiel beendet! Score: " + totalScore.toFixed(1);
+    var btnA = document.getElementById("answerA"), btnB = document.getElementById("answerB");
+    var btnC = document.getElementById("answerC"), btnD = document.getElementById("answerD");
+    if (btnA) btnA.textContent = "A";
+    if (btnB) btnB.textContent = "B (ready)";
+    if (btnC) btnC.textContent = "C";
+    if (btnD) btnD.textContent = "D (not ready)";
+    if (controllerAnswers) { controllerAnswers.style.display = "grid"; controllerAnswers.classList.remove("is-locked"); }
+    totalScore = 0;
+    if (scoreValue) scoreValue.textContent = "0";
+  }
+
+  /** Verbindet mit MQTT-Broker, registriert den Controller, abonniert game/state, game/question usw. */
+  function connectMqtt() {
+    if (!controllerId || typeof mqtt === "undefined" || !window.__ENV__) return;
+    var env = window.__ENV__;
+    prefix = (env.MQTT_MESSAGE_PREFIX || "group-16/").replace(/\/?$/, "/");
+    var host = env.MQTT_BROKER_URL || window.location.hostname;
+    if (host === "mosquitto") host = "localhost";
+    if (!host) host = "localhost";
+    var port = env.MQTT_BROKER_PORT || "9001";
+    var wsUrl = "ws://" + host + ":" + port;
+    client = mqtt.connect(wsUrl, {
+      username: env.MQTT_USERNAME || "",
+      password: env.MQTT_PASSWORD || ""
+    });
+    client.on("connect", function () {
+      var topicRegister = prefix + "controller/" + controllerId + "/register";
+      client.publish(topicRegister, JSON.stringify({ action: "register", controllerId: controllerId }));
+      client.subscribe(prefix + "controller/" + controllerId + "/ping");
+      client.subscribe(prefix + "controller/" + controllerId + "/status");
+      setInterval(function () {
+        if (client && client.connected) {
+          client.publish(prefix + "controller/" + controllerId + "/request-status", JSON.stringify({}));
+        }
+      }, 5000);
+      client.subscribe(prefix + "game/state");
+      client.subscribe(prefix + "game/countdown");
+      client.subscribe(prefix + "game/question");
+      client.subscribe(prefix + "game/evaluation");
+      client.subscribe(prefix + "game/ended");
+      client.publish(prefix + "controller/" + controllerId + "/request-status", JSON.stringify({}));
+    });
+    /* MQTT-Nachrichten: ping/pong, status, game/state, game/question, game/evaluation, game/ended. */
+    client.on("message", function (topic, message) {
+      var msg = message ? message.toString() : "";
+      if (topic.endsWith("/ping")) {
+        client.publish(prefix + "controller/" + controllerId + "/pong", JSON.stringify({ action: "pong", controllerId: controllerId, ts: Date.now() }));
+        return;
+      }
+      if (topic === prefix + "controller/" + controllerId + "/status") {
+        try { var sd = JSON.parse(msg); setPlayerUi(sd.playerId || "", !!sd.ready); } catch (e) {}
+        return;
+      }
+      if (subscribedStatusTopic && topic === subscribedStatusTopic) {
+        try { var sd = JSON.parse(msg); setReadyUi(typeof sd.ready === "boolean" ? sd.ready : sd.status === "READY"); } catch (e) {}
+        return;
+      }
+      if (subscribedResultTopic && topic === subscribedResultTopic) {
+        try { showResult(JSON.parse(msg)); } catch (e) {}
+        return;
+      }
+      try { var data = JSON.parse(msg); } catch (e) { return; }
+      if (topic === prefix + "game/state") {
+        gameState = data.state || "LOBBY";
+        updateStatusDisplay();
+        if (data.state === "EVALUATION") showEvaluation();
+        else if (data.state === "ENDED") showEnded(data);
+      } else if (topic === prefix + "game/countdown") { /* Controller zeigt keinen Countdown */ }
+      else if (topic === prefix + "game/question") showQuestion(data);
+      else if (topic === prefix + "game/ended") showEnded(data);
+    });
+    client.on("error", function (e) { console.warn("MQTT Fehler:", e); });
+  }
+
+  initController();
+
+  /** Bindet die Klick-Handler für die Antwort-Buttons (A/B/C/D, Ready/Not ready). */
+  function attachAnswerHandlers(container) {
+    if (!container) return;
+    container.querySelectorAll(".answer-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        if (container.classList.contains("is-locked")) return;
+        if (gameState === "QUESTION") {
+          var option = btn.id === "answerA" ? "A" : btn.id === "answerB" ? "B" : btn.id === "answerC" ? "C" : btn.id === "answerD" ? "D" : "";
+          if (!option) return;
+          container.querySelectorAll(".answer-btn").forEach(function (b) { b.classList.remove("is-selected"); });
+          btn.classList.add("is-selected");
+          container.classList.add("is-locked");
+          publishAnswer(option);
+        } else if (gameState === "LOBBY") {
+          if (btn.id === "answerB") publishReadyState(true);
+          else if (btn.id === "answerD") publishReadyState(false);
+        }
+      });
+    });
+  }
+  setReadyUi(false);
+  attachAnswerHandlers(controllerAnswers);
+})();
+    </script>
+  </body>
+</html>
