@@ -1,84 +1,68 @@
-### Test Auth API
+### Test Player API
+### Base URL
 @baseUrl = http://localhost:8080
 
-### POST /api/auth/register
+### Create a new player (POST /api/auth/register)
 POST {{baseUrl}}/api/auth/register
 Content-Type: application/json
 
 {
-  "username": "jordan",
-  "password": "monmotdepasse",
-  "passwordRepeat": "monmotdepasse"
+  "username": "jhordan",
+  "password": "monmotdepasse"
 }
 
-### POST /api/auth/login
+### Test Login API
+### Login with username and password (POST /api/auth/login)
 POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
 {
-  "username": "jordan",
+  "username": "jhordan",
   "password": "monmotdepasse"
 }
 
+### Test Lobby API
+### Create new lobby session (POST /api/lobby/create)
+POST {{baseUrl}}/api/lobby/create
+
+### Get lobby status (GET /api/lobby/status)
+GET {{baseUrl}}/api/lobby/status
+
+### Leave lobby and free controller (POST /api/lobby/leave)
+POST {{baseUrl}}/api/lobby/leave
+Content-Type: application/json
+
+{
+  "username": "alice"
+}
+
 ### Test Controllers API
-### GET /api/controllers/available
+### Get available controllers (GET /api/controllers/available)
 GET {{baseUrl}}/api/controllers/available
 
-### POST /api/controllers/create-web
+### Create web controller (POST /api/controllers/create-web)
+### Creates a new web controller in the database with a unique ID and status FREE.
 POST {{baseUrl}}/api/controllers/create-web
 Content-Type: application/json
 
 ###
-### Erwartet: 201 mit JSON { "controllerId": "WEB-xxx...", "type": "WEB", "status": "FREE" }
+### Expected: 201 with JSON body like { "controllerId": "WEB-xxxxxxxxxxxx", "type": "WEB", "status": "FREE" }
+### Then GET /api/controllers/available should list the new controller.
 
-### Test Lobby API
-### POST /api/lobby/create
-POST {{baseUrl}}/api/lobby/create
-
-### GET /api/lobby/status
-GET {{baseUrl}}/api/lobby/status
-
-### POST /api/lobby/join
-POST {{baseUrl}}/api/lobby/join
-Content-Type: application/json
-
-{
-  "username": "jordan"
-}
-
-### Test Player API
-### POST /api/players/bind – Controller an Spieler binden
-### Voraussetzung: User registriert, Controller erstellt (create-web)
+### Test Player Bind API
+### Bind controller to player (POST /api/players/bind)
 POST {{baseUrl}}/api/players/bind
 Content-Type: application/json
 
 {
-  "username": "jordan",
-  "controllerId": "WEB-xxxxxxxxxxxx",
+  "userId": 4,
+  "controllerId": "123:ABC:DEF",
   "controllerType": "WEB"
 }
 
-### Test Objects API
-### POST /api/objects
-POST {{baseUrl}}/api/objects
-Content-Type: text/plain
-
-Hallo Welt
-
-### GET /api/objects
-GET {{baseUrl}}/api/objects
-
-### PUT /api/objects/1
-PUT {{baseUrl}}/api/objects/1
-Content-Type: text/plain
-
-Geänderte Nachricht
-
-### DELETE /api/objects/1
-DELETE {{baseUrl}}/api/objects/1
-
-### Test Game API
-### POST /api/game/config – Voraussetzung: Lobby mit Spielern
+### Test Game Config API
+### Configurer la partie (POST /api/game/config)
+### Prérequis: une session en state LOBBY doit exister (ex. session id 5 dans les seeds)
 POST {{baseUrl}}/api/game/config
 Content-Type: application/json
 
@@ -88,5 +72,36 @@ Content-Type: application/json
   "difficulties": ["EASY", "MEDIUM", "HARD"]
 }
 
-### POST /api/game/start – alle Spieler müssen ready sein
+### --- À vérifier en DB après POST /api/game/config (200) ---
+### 1) game_sessions: pour la session en LOBBY (ex. id=5)
+###    - round_length = 'Q10' (ou Q5/Q20 selon mode)
+###    - allow_easy, allow_medium, allow_hard = 1 si la difficulté est dans le body
+### 2) game_session_categories: pour cette session
+###    - exactement les category_id envoyés (ex. 1, 2, 3), anciennes lignes supprimées
+
+### Exemple invalide: trop peu de questions (mode 20, une seule catégorie peut ne pas suffire)
+# POST {{baseUrl}}/api/game/config
+# Content-Type: application/json
+#
+# {
+#   "mode": 20,
+#   "categories": [1],
+#   "difficulties": ["EASY"]
+# }
+
+### Test Game Start API
+### Démarre la partie: session LOBBY → COUNTDOWN, puis envoi MQTT game/start aux contrôleurs
 POST {{baseUrl}}/api/game/start
+
+### --- À vérifier après POST /api/game/start (200) ---
+### 1) game_sessions: la session (ex. id=5) doit avoir state = 'COUNTDOWN', started_at rempli
+### 2) Logs backend: "Game gestartet (COUNTDOWN)... MQTT game/start gesendet"
+### 3) Si tu as un client MQTT abonné à test/game/start (ou MQTT_MESSAGE_PREFIX + game/start): message {"action":"start"}
+
+### Test Highscores API
+### GET /api/highscores/{mode} – mode=5|10|20, optionnel ?limit=20
+GET {{baseUrl}}/api/highscores/10
+### avec limit
+GET {{baseUrl}}/api/highscores/10?limit=5
+GET {{baseUrl}}/api/highscores/5
+GET {{baseUrl}}/api/highscores/20

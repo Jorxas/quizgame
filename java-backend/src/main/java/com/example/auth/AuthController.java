@@ -1,5 +1,8 @@
 package com.example.auth;
 
+/**
+ * Auth-Controller – Registrierung, Login, RFID-Lookup und RFID-Aktualisierung.
+ */
 import com.example.http.HttpController;
 import com.example.lobby.LobbyService;
 import io.vertx.core.Vertx;
@@ -17,12 +20,86 @@ public class AuthController implements HttpController {
         this.lobbyService = new LobbyService();
     }
 
+    /** Registriert alle Auth-Routes (Register, Login, RFID). */
     @Override
     public void registerRoutes(Router router) {
         router.post("/api/auth/register").handler(this::handleRegister);
         router.post("/api/auth/login").handler(this::handleLogin);
+        router.get("/api/auth/rfid/:uid").handler(this::handleRfidLookup);
+        router.get("/api/auth/rfid").handler(this::handleGetRfid);
+        router.put("/api/auth/rfid").handler(this::handleUpdateRfid);
     }
 
+    /** Liefert die RFID-Karte des Benutzers (GET /api/auth/rfid). */
+    private void handleGetRfid(RoutingContext ctx) {
+        String username = ctx.request().getParam("username");
+        if (username == null || username.isBlank()) {
+            ctx.response().setStatusCode(400).end("Benutzername erforderlich.");
+            return;
+        }
+        authService.getRfidForUser(username.trim(), ar -> {
+            if (ar.succeeded()) {
+                String rfid = ar.result();
+                ctx.response()
+                        .putHeader("content-type", "application/json")
+                        .setStatusCode(200)
+                        .end(new JsonObject().put("rfidUid", rfid != null ? rfid : "").encode());
+            } else {
+                ctx.response().setStatusCode(500).end();
+            }
+        });
+    }
+
+    /** Aktualisiert die RFID-Karte des Benutzers (PUT /api/auth/rfid). */
+    private void handleUpdateRfid(RoutingContext ctx) {
+        JsonObject body = ctx.body().asJsonObject();
+        if (body == null) {
+            ctx.response().setStatusCode(400).end("Ungültige Anfrage.");
+            return;
+        }
+        String username = body.getString("username");
+        if (username == null || username.isBlank()) {
+            ctx.response().setStatusCode(400).end("Benutzername erforderlich.");
+            return;
+        }
+        String rfidUid = body.getString("rfidUid");
+        if (rfidUid != null) rfidUid = rfidUid.trim().replaceAll("\\s+", "").toUpperCase();
+        if (rfidUid != null && rfidUid.isEmpty()) rfidUid = null;
+
+        authService.updateRfidForUser(username.trim(), rfidUid, ar -> {
+            if (ar.succeeded()) {
+                ctx.response().setStatusCode(200).end("RFID-Karte aktualisiert.");
+            } else {
+                String msg = ar.cause() != null ? ar.cause().getMessage() : "Aktualisierung fehlgeschlagen.";
+                if (msg.toLowerCase().contains("duplicate") || msg.toLowerCase().contains("rfid")) {
+                    ctx.response().setStatusCode(409).end("RFID-Karte bereits vergeben.");
+                } else {
+                    ctx.response().setStatusCode(500).end("RFID-Aktualisierung fehlgeschlagen.");
+                }
+            }
+        });
+    }
+
+    /** Sucht Benutzernamen anhand der RFID-UID (GET /api/auth/rfid/:uid). */
+    private void handleRfidLookup(RoutingContext ctx) {
+        String uid = ctx.pathParam("uid");
+        if (uid == null || uid.isBlank()) {
+            ctx.response().setStatusCode(400).end();
+            return;
+        }
+        authService.lookupByRfid(uid.trim(), ar -> {
+            if (ar.succeeded() && ar.result() != null) {
+                ctx.response()
+                        .putHeader("content-type", "application/json")
+                        .setStatusCode(200)
+                        .end(new JsonObject().put("username", ar.result()).encode());
+            } else {
+                ctx.response().setStatusCode(404).end();
+            }
+        });
+    }
+
+    /** Registriert einen neuen Benutzer (POST /api/auth/register). */
     private void handleRegister(RoutingContext ctx) {
         JsonObject body = ctx.body().asJsonObject();
         if (body == null) {
@@ -50,13 +127,18 @@ public class AuthController implements HttpController {
             return;
         }
 
-        authService.register(username.trim(), password, res -> {
+        String rfidUid = body.getString("rfidUid");
+        if (rfidUid != null) rfidUid = rfidUid.trim().replaceAll("\\s+", "").toUpperCase();
+        if (rfidUid != null && rfidUid.isEmpty()) rfidUid = null;
+
+        authService.register(username.trim(), password, rfidUid, res -> {
             if (res.succeeded()) {
                 ctx.response().setStatusCode(201).end("Benutzer erfolgreich erstellt.");
             } else {
                 String message = res.cause() != null ? res.cause().getMessage() : "Registrierung fehlgeschlagen.";
                 if (message.contains("Duplicate")) {
-                    ctx.response().setStatusCode(409).end("Benutzername existiert bereits.");
+                    String err = message.toLowerCase().contains("rfid") ? "RFID-Karte bereits vergeben." : "Benutzername existiert bereits.";
+                    ctx.response().setStatusCode(409).end(err);
                 } else {
                     ctx.response().setStatusCode(500).end("Registrierung fehlgeschlagen.");
                 }

@@ -1,5 +1,9 @@
 package com.example.game;
 
+/**
+ * GameStateManager – Singleton für Spielzustände (LOBBY, COUNTDOWN, QUESTION, EVALUATION, ENDED).
+ * Steuert Countdown, Frage-Ablauf, MQTT-Publikation.
+ */
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -11,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.sqlclient.Tuple;
@@ -96,10 +101,15 @@ public class GameStateManager {
                                 .put("selectedOption", selectedOption);
                         eventBus.publish("game.player.result", playerResult.encode());
                         logger.info("Answer from {}: correct={}, points={}", playerId, result.getBoolean("is_correct"), result.getDouble("points_awarded"));
-                        if (!questionEnded && answeredPlayers.size() >= players.size()) {
-                            cancelQuestionTimer();
-                            endQuestion();
-                        }
+                        gameRepository.countConnectedPlayersInSession(sessionId, countAr -> {
+                            if (countAr.succeeded() && !questionEnded) {
+                                int connectedCount = countAr.result();
+                                if (answeredPlayers.size() >= connectedCount) {
+                                    cancelQuestionTimer();
+                                    endQuestion();
+                                }
+                            }
+                        });
                     } else {
                         logger.warn("Failed to save answer for {}: {}", playerId, ar.cause().getMessage());
                     }
@@ -183,6 +193,19 @@ public class GameStateManager {
         currentQuestionId = questionIds.get(currentQuestionIndex);
         answeredPlayers.clear();
         questionEnded = false;
+
+        eventBus.publish("game.pre_question_ping", new JsonObject().put("sessionId", sessionId));
+        final MessageConsumer<String>[] consumerRef = new MessageConsumer[1];
+        consumerRef[0] = eventBus.consumer("game.pre_question_ping.done", msg -> {
+            String doneSessionId = (String) msg.body();
+            consumerRef[0].unregister();
+            if (Long.toString(sessionId).equals(doneSessionId) && gameActive) {
+                doSendQuestion();
+            }
+        });
+    }
+
+    private void doSendQuestion() {
         gameRepository.updateSessionState(sessionId, "QUESTION", stateAr -> {
             gameRepository.fetchQuestionWithOptions(currentQuestionId, ar -> {
                 if (ar.failed()) {

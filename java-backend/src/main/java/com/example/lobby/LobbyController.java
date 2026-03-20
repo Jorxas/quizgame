@@ -1,5 +1,8 @@
 package com.example.lobby;
 
+/**
+ * Lobby-Controller – Lobby erstellen, Status, Join, Leave.
+ */
 import com.example.http.HttpController;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
@@ -10,9 +13,11 @@ import io.vertx.ext.web.RoutingContext;
 public class LobbyController implements HttpController {
 
     private final LobbyService lobbyService;
+    private final Vertx vertx;
 
     public LobbyController(Vertx vertx) {
         this.lobbyService = new LobbyService();
+        this.vertx = vertx;
     }
 
     /** Registriert die Lobby-Routen. */
@@ -21,6 +26,7 @@ public class LobbyController implements HttpController {
         router.post("/api/lobby/create").handler(this::handleCreate);
         router.get("/api/lobby/status").handler(this::handleStatus);
         router.post("/api/lobby/join").handler(this::handleJoin);
+        router.post("/api/lobby/leave").handler(this::handleLeave);
     }
 
     /** Erstellt neue Lobby-Session (POST /api/lobby/create). */
@@ -70,6 +76,30 @@ public class LobbyController implements HttpController {
                 String msg = ar.cause() != null ? ar.cause().getMessage() : "Lobby-Beitritt fehlgeschlagen.";
                 int status = msg.contains("Keine Lobby") ? 404 : 400;
                 ctx.response().setStatusCode(status).end(msg);
+            }
+        });
+    }
+
+    /** Spieler tritt Lobby aus (POST /api/lobby/leave). */
+    private void handleLeave(RoutingContext ctx) {
+        JsonObject body = ctx.body().asJsonObject();
+        if (body == null) {
+            ctx.response().setStatusCode(400).end("Ungültige Anfrage.");
+            return;
+        }
+        String username = body.getString("username");
+        if (username == null || username.isBlank()) {
+            ctx.response().setStatusCode(400).end("Benutzername erforderlich.");
+            return;
+        }
+
+        lobbyService.removePlayerFromLobby(username, ar -> {
+            if (ar.succeeded()) {
+                vertx.eventBus().publish("lobby.updated", new JsonObject());
+                ctx.response().setStatusCode(200).end("Lobby verlassen.");
+            } else {
+                String msg = ar.cause() != null ? ar.cause().getMessage() : "Lobby verlassen fehlgeschlagen.";
+                ctx.response().setStatusCode(400).end(msg);
             }
         });
     }
