@@ -27,10 +27,6 @@ void begin() {
   }
 }
 
-bool isPressed(uint8_t pin) {
-  return digitalRead(pin) == HIGH;
-}
-
 bool isPressedDebounced(uint8_t pin) {
   int idx = pinToIndex(pin);
   if (idx < 0) return false;

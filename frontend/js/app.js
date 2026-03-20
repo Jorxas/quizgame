@@ -38,7 +38,6 @@ document.addEventListener("DOMContentLoaded", function () {
   var gameContent = document.getElementById("gameContent");
   var answerGrid = document.getElementById("answerGrid");
   var gameTimer = document.getElementById("gameTimer");
-  var evalList = document.getElementById("evalList");
   var evalRankingsBody = document.getElementById("evalRankingsBody");
   var evalQuestionInfo = document.getElementById("evalQuestionInfo");
 
@@ -86,16 +85,6 @@ document.addEventListener("DOMContentLoaded", function () {
       var activeMode = document.querySelector(".score-tab.is-active");
       window.loadHighscores(activeMode ? parseInt(activeMode.getAttribute("data-mode"), 10) : 5);
     }
-  }
-
-  function setGameActive(active) {
-    document.querySelectorAll("#mainTabs .tab, #bottomNav .tab").forEach(function (tab) {
-      tab.disabled = active;
-    });
-
-    document.querySelectorAll(".panel.left, .main-section[data-main-section=\"lobby\"]").forEach(function (el) {
-      el.classList.toggle("is-locked", active);
-    });
   }
 
   function getSelectedCount() {
