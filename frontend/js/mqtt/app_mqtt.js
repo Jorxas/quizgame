@@ -1,5 +1,6 @@
 /**
- * App MQTT — Connexion au broker et gestion des messages game (state, countdown, question, evaluation, ended).
+ * Quiz-Plattform – MQTT-Client für Echtzeit-Updates
+ * Verbindung zum Broker, Abonnements: game/state, countdown, question, evaluation, ended, lobby/status
  */
 
 (function () {
@@ -126,7 +127,7 @@
         row.className = "result-row";
         name.textContent = result.username;
         tag.className = "tag " + (result.correct ? "ok" : "warn");
-        tag.textContent = result.correct ? "+" + result.points.toFixed(1) + " Pkt" : "Falsch";
+        tag.textContent = result.correct ? "+" + formatScoreExact(result.points) + " Pkt" : "Falsch";
 
         row.appendChild(name);
         row.appendChild(tag);
@@ -143,7 +144,7 @@
         if (index === 1) tr.className = "rank-2";
         if (index === 2) tr.className = "rank-3";
 
-        tr.innerHTML = "<td>" + (index + 1) + "</td><td>" + escapeHtml(ranking.username) + "</td><td>" + ranking.totalPoints.toFixed(1) + "</td>";
+        tr.innerHTML = "<td>" + (index + 1) + "</td><td>" + escapeHtml(ranking.username) + "</td><td>" + formatScoreExact(ranking.totalPoints) + "</td>";
         evalRankingsBody.appendChild(tr);
       });
     }
