@@ -67,11 +67,6 @@ public class MqttController {
 
     /** Registriert EventBus-Consumer für game.state, game.countdown, game.question usw. */
     public void registerEventBusConsumers() {
-        this.eventBus.consumer("mqtt.demo.message", msg -> {
-            logger.info("Message received via EventBus: 'mqtt.message'");
-            mqttService.publishDemoMessage(msg.body().toString());
-        });
-
         this.eventBus.consumer("game.state", msg -> {
             mqttService.publishGameState(msg.body().toString());
         });
@@ -184,9 +179,7 @@ public class MqttController {
 
             logger.info("Message received via Mqtt. Topic: {}, Payload: {}", topic, payload);
 
-            if (topic.equals(mqttMessagePrefix + "demo/hello_world")) {
-                this.eventBus.publish("mqtt.demo.message", payload);
-            } else if (topic.equals(mqttMessagePrefix + "output")) {
+            if (topic.equals(mqttMessagePrefix + "output")) {
                 logger.info("Output message received: {}", payload.toString());
             } else if (topic.startsWith(mqttMessagePrefix + CONTROLLER_REGISTER_TOPIC_PREFIX) && topic.endsWith(CONTROLLER_REGISTER_TOPIC_SUFFIX)) {
                 String controllerId = topic.substring(
@@ -279,7 +272,6 @@ public class MqttController {
         });
 
         mqttClient.subscribe(Map.of(
-                mqttMessagePrefix + "demo/hello_world", 0,
                 mqttMessagePrefix + "output", 0,
                 mqttMessagePrefix + "auth/rfid/lookup", 0,
                 mqttMessagePrefix + "controller/+/register", 0,
