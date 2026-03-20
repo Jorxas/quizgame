@@ -23,13 +23,6 @@ public class MqttService {
         this.mqttClient = mqttClient;
     }
 
-    /** Sendet eine Demo-Nachricht an demo/message. */
-    public void publishDemoMessage(String message) {
-        JsonObject data = new JsonObject().put("message", message);
-        mqttClient.publish(mqttMessagePrefix + "demo/message", data.toBuffer(), MqttQoS.AT_MOST_ONCE, false, false);
-        logger.info("📡 MQTT published demo message: {}", data);
-    }
-
     /** Sendet Controller-Status (playerId, ready) an controller/{controllerId}/status. */
     public void publishControllerStatus(String controllerId, String playerId, boolean ready) {
         String topic = mqttMessagePrefix + "controller/" + controllerId + "/status";
