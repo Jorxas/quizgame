@@ -67,4 +67,11 @@ long getTotalScore();
 // Get points for "+X Pkt" flash (0 = not showing). Ages out after 1.5s.
 long getPlusXPoints();
 
+// Returns latest countdown tick (3/2/1) once, then resets to 0.
+int consumeCountdownTick();
+
+// Returns answer correctness once after player/result.
+// If true is returned, outCorrect is set to true/false for correct/wrong.
+bool consumeAnswerFeedback(bool* outCorrect);
+
 } // namespace net::wifi_mqtt
