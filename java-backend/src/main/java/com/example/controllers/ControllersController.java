@@ -1,5 +1,8 @@
 package com.example.controllers;
 
+/**
+ * Controllers-Controller – verfügbare Controller abrufen, Web-Controller erstellen.
+ */
 import com.example.http.HttpController;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;

@@ -1,5 +1,8 @@
 package com.example.mqtt;
 
+/**
+ * MQTT-Service – Publish von game/state, countdown, question, evaluation, lobby/status.
+ */
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,5 +1,8 @@
 package com.example.controllers;
 
+/**
+ * Controllers-Service – Verwaltung verfügbarer Controller, Disconnect.
+ */
 import com.example.lobby.LobbyService;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;

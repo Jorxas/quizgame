@@ -1,5 +1,8 @@
 package com.example.auth;
 
+/**
+ * Auth-Controller – Registrierung, Login, RFID-Lookup und RFID-Aktualisierung.
+ */
 import com.example.http.HttpController;
 import com.example.lobby.LobbyService;
 import io.vertx.core.Vertx;

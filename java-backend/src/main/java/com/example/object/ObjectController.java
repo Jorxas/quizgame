@@ -1,5 +1,8 @@
 package com.example.object;
 
+/**
+ * Object-Controller – CRUD für Test-Objekte (Create, Read, Update, Delete).
+ */
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

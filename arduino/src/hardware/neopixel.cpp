@@ -1,3 +1,6 @@
+/**
+ * NeoPixel – LED-Strip, Farben, Flash-Feedback bei Tastendruck
+ */
 #include "hardware/neopixel.h"
 #include "config.h"
 

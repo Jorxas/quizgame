@@ -1,5 +1,8 @@
 #pragma once
 
+/**
+ * net/wifi_mqtt.h – WiFi/MQTT: ensureConnected, publishPlayerReady, publishPlayerAnswer, rfidLookupUsername
+ */
 #include <Arduino.h>
 #include <PubSubClient.h>
 #include <WiFiS3.h>

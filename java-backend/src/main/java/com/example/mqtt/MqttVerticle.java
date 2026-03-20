@@ -1,5 +1,8 @@
 package com.example.mqtt;
 
+/**
+ * MQTT-Verticle – Verbindung zum Broker, startet MqttController.
+ */
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

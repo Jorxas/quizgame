@@ -1,5 +1,8 @@
 package com.example.auth;
 
+/**
+ * Auth-Service – Geschäftslogik für Registrierung, Login, RFID-Lookup.
+ */
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 

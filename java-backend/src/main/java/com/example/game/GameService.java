@@ -1,5 +1,8 @@
 package com.example.game;
 
+/**
+ * Game-Service – Spielablauf, Fragenauswahl, Bewertung, Highscores.
+ */
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;

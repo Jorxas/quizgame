@@ -1,5 +1,8 @@
 package com.example.player;
 
+/**
+ * Player-Service – Controller-Bindung an Benutzer.
+ */
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 

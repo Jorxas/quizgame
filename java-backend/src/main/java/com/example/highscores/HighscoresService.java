@@ -1,5 +1,8 @@
 package com.example.highscores;
 
+/**
+ * Highscores-Service – Top-10-Abfrage je round_length.
+ */
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;

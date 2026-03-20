@@ -1,5 +1,8 @@
 #pragma once
 
+/**
+ * hardware/buttons.h – Tasten A/B/C/D, begin, isPressed, isPressedDebounced
+ */
 #include <Arduino.h>
 
 namespace hw::buttons {

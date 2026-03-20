@@ -1,5 +1,8 @@
 package com.example.http;
 
+/**
+ * HTTP-Server-Verticle – CORS, statische Dateien, Router.
+ */
 import io.vertx.core.AbstractVerticle;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;

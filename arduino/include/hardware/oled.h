@@ -1,5 +1,8 @@
 #pragma once
 
+/**
+ * hardware/oled.h – SH1106 OLED: showThmLogo, showRfidWelcome, showPlayerStatus, showPlusXPoints
+ */
 #include <Arduino.h>
 #include <Adafruit_GFX.h>
 #include <Fonts/FreeSans9pt7b.h>
