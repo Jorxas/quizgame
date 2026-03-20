@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.sqlclient.Tuple;
@@ -188,6 +189,19 @@ public class GameStateManager {
         currentQuestionId = questionIds.get(currentQuestionIndex);
         answeredPlayers.clear();
         questionEnded = false;
+
+        eventBus.publish("game.pre_question_ping", new JsonObject().put("sessionId", sessionId));
+        final MessageConsumer<String>[] consumerRef = new MessageConsumer[1];
+        consumerRef[0] = eventBus.consumer("game.pre_question_ping.done", msg -> {
+            String doneSessionId = (String) msg.body();
+            consumerRef[0].unregister();
+            if (Long.toString(sessionId).equals(doneSessionId) && gameActive) {
+                doSendQuestion();
+            }
+        });
+    }
+
+    private void doSendQuestion() {
         gameRepository.updateSessionState(sessionId, "QUESTION", stateAr -> {
             gameRepository.fetchQuestionWithOptions(currentQuestionId, ar -> {
                 if (ar.failed()) {

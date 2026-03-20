@@ -371,6 +371,25 @@ public class GameRepository {
         });
     }
 
+    /** Liefert Controller-IDs (z.B. MAC) der Spieler einer Session mit gebundenem Controller. */
+    public void fetchControllerIdsForSession(long sessionId, Handler<AsyncResult<List<String>>> resultHandler) {
+        String sql = "SELECT c.controller_id FROM game_session_players gsp " +
+                "JOIN controllers c ON c.id = gsp.controller_id " +
+                "WHERE gsp.game_session_id = ? AND c.controller_id IS NOT NULL";
+        jdbcPool.preparedQuery(sql).execute(Tuple.of(sessionId), ar -> {
+            if (ar.failed()) {
+                resultHandler.handle(Future.failedFuture(ar.cause()));
+                return;
+            }
+            List<String> ids = new ArrayList<>();
+            for (Row row : ar.result()) {
+                String cid = row.getString("controller_id");
+                if (cid != null && !cid.isBlank()) ids.add(cid);
+            }
+            resultHandler.handle(Future.succeededFuture(ids));
+        });
+    }
+
     /** Liefert Spieler einer Session. */
     public void fetchSessionPlayers(long sessionId, Handler<AsyncResult<List<String>>> resultHandler) {
         String sql = "SELECT u.username FROM game_session_players gsp JOIN users u ON u.id = gsp.user_id WHERE gsp.game_session_id = ?";
@@ -403,25 +422,34 @@ public class GameRepository {
     }
 
     private void doResetPlayersAndState(long sessionId, Handler<AsyncResult<JsonArray>> resultHandler) {
-        jdbcPool.preparedQuery("UPDATE game_session_players SET is_ready = 0 WHERE game_session_id = ?").execute(Tuple.of(sessionId), updateAr -> {
-            if (updateAr.failed()) {
-                resultHandler.handle(Future.failedFuture(updateAr.cause()));
+        String removeOffline = "DELETE gsp FROM game_session_players gsp " +
+                "JOIN controllers c ON c.id = gsp.controller_id " +
+                "WHERE gsp.game_session_id = ? AND c.status = 'OFFLINE'";
+        jdbcPool.preparedQuery(removeOffline).execute(Tuple.of(sessionId), removeAr -> {
+            if (removeAr.failed()) {
+                resultHandler.handle(Future.failedFuture(removeAr.cause()));
                 return;
             }
-            jdbcPool.preparedQuery("UPDATE game_sessions SET state = 'LOBBY' WHERE id = ?").execute(Tuple.of(sessionId), stateAr -> {
-                if (stateAr.failed()) {
-                    resultHandler.handle(Future.failedFuture(stateAr.cause()));
+            jdbcPool.preparedQuery("UPDATE game_session_players SET is_ready = 0 WHERE game_session_id = ?").execute(Tuple.of(sessionId), updateAr -> {
+                if (updateAr.failed()) {
+                    resultHandler.handle(Future.failedFuture(updateAr.cause()));
                     return;
                 }
-                String sql = "SELECT u.username FROM game_session_players gsp JOIN users u ON u.id = gsp.user_id WHERE gsp.game_session_id = ?";
-                jdbcPool.preparedQuery(sql).execute(Tuple.of(sessionId), userAr -> {
-                    if (userAr.failed()) {
-                        resultHandler.handle(Future.failedFuture(userAr.cause()));
+                jdbcPool.preparedQuery("UPDATE game_sessions SET state = 'LOBBY' WHERE id = ?").execute(Tuple.of(sessionId), stateAr -> {
+                    if (stateAr.failed()) {
+                        resultHandler.handle(Future.failedFuture(stateAr.cause()));
                         return;
                     }
-                    JsonArray usernames = new JsonArray();
-                    for (Row row : userAr.result()) usernames.add(row.getString("username"));
-                    resultHandler.handle(Future.succeededFuture(usernames));
+                    String sql = "SELECT u.username FROM game_session_players gsp JOIN users u ON u.id = gsp.user_id WHERE gsp.game_session_id = ?";
+                    jdbcPool.preparedQuery(sql).execute(Tuple.of(sessionId), userAr -> {
+                        if (userAr.failed()) {
+                            resultHandler.handle(Future.failedFuture(userAr.cause()));
+                            return;
+                        }
+                        JsonArray usernames = new JsonArray();
+                        for (Row row : userAr.result()) usernames.add(row.getString("username"));
+                        resultHandler.handle(Future.succeededFuture(usernames));
+                    });
                 });
             });
         });
