@@ -13,6 +13,11 @@
     return div.innerHTML;
   }
 
+  function formatScoreExact(n) {
+    var num = Number(n);
+    return isNaN(num) ? "0" : String(num);
+  }
+
   function setGameActive(active) {
     document.querySelectorAll("#mainTabs .tab, #bottomNav .tab").forEach(function (tab) {
       tab.disabled = active;
