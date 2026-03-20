@@ -31,6 +31,9 @@ static long g_totalScore = 0;
 // Brief "+X Pkt" display: points to show, 0 = don't show
 static long g_plusXPoints = 0;
 static uint32_t g_plusXShowUntil = 0;
+static int g_pendingCountdownTick = 0;
+static bool g_feedbackPending = false;
+static bool g_lastAnswerCorrect = false;
 
 // Helper: find value of key "key":"value" or "key":123 in buf
 /** Liest String-Wert eines JSON-Schlüssels aus dem Buffer. */
@@ -81,6 +84,13 @@ static void onMqttMessage(char* topic, uint8_t* payload, unsigned int len) {
       }
       return;
     }
+    if (strstr(topic, "game/countdown")) {
+      long tick = extractJsonLong(buf, "tick");
+      if (tick >= 1 && tick <= 3) {
+        g_pendingCountdownTick = (int)tick;
+      }
+      return;
+    }
     // Question: only need questionId to send answers (no display like web controller)
     if (strstr(topic, "game/question")) {
       long qId = extractJsonLong(buf, "questionId");
@@ -107,6 +117,8 @@ static void onMqttMessage(char* topic, uint8_t* payload, unsigned int len) {
             bool correct = (strstr(buf, "\"correct\":true") != nullptr);
             long points = extractJsonLong(buf, "points");
             g_totalScore += points;
+            g_lastAnswerCorrect = correct;
+            g_feedbackPending = true;
             if (points > 0) {
               g_plusXPoints = points;
               g_plusXShowUntil = millis() + 1500;  // show "+X Pkt" for 1.5s
@@ -209,6 +221,7 @@ bool connectMqtt() {
       g_client.subscribe((String(MQTT_TOPIC_PREFIX) + "controller/" + mac + "/status").c_str());
       g_client.subscribe((String(MQTT_TOPIC_PREFIX) + "controller/" + mac + "/rfid/reply").c_str());
       g_client.subscribe((String(MQTT_TOPIC_PREFIX) + "game/state").c_str());
+      g_client.subscribe((String(MQTT_TOPIC_PREFIX) + "game/countdown").c_str());
       g_client.subscribe((String(MQTT_TOPIC_PREFIX) + "game/question").c_str());
       g_client.subscribe((String(MQTT_TOPIC_PREFIX) + "game/ended").c_str());
       g_client.subscribe((String(MQTT_TOPIC_PREFIX) + "player/+/result").c_str());
@@ -384,6 +397,19 @@ long getPlusXPoints() {
   if (g_plusXPoints > 0 && millis() < g_plusXShowUntil) return g_plusXPoints;
   g_plusXPoints = 0;
   return 0;
+}
+
+int consumeCountdownTick() {
+  int t = g_pendingCountdownTick;
+  g_pendingCountdownTick = 0;
+  return t;
+}
+
+bool consumeAnswerFeedback(bool* outCorrect) {
+  if (!g_feedbackPending) return false;
+  g_feedbackPending = false;
+  if (outCorrect) *outCorrect = g_lastAnswerCorrect;
+  return true;
 }
 
 /** Fordert den Controller-Status vom Backend an. */
