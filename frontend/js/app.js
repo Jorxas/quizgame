@@ -1,17 +1,3 @@
-/**
- * Quiz-Plattform – Hauptlogik (Frontend)
- * Steuerung: UI-Zustände (Login/Register/Controller), Tabs, Spielkonfiguration, Lobby-Counter
- */
-
-/** Affiche le score exact sans arrondi (conserve les décimales) */
-function formatScoreExact(n) {
-  var num = Number(n);
-  if (isNaN(num)) return "0";
-  return String(num);
-}
-window.formatScoreExact = formatScoreExact;
-
-/** Zeigt ein Modal-Popup (Erfolg, Fehler, Info) – global über window.showMessage */
 function showMessage(text, type) {
   var overlay = document.createElement("div");
   var box = document.createElement("div");
@@ -41,34 +27,36 @@ function showMessage(text, type) {
 
 window.showMessage = showMessage;
 
-/** DOMContentLoaded: Event-Handler registrieren, Lobby/Controller-Poll starten */
 document.addEventListener("DOMContentLoaded", function () {
   var body = document.body;
   var controllerList = document.getElementById("controllerList");
   var questionCounterDisplay = document.getElementById("questionCounterDisplay");
   var gameQuestionCounterDisplay = document.getElementById("gameQuestionCounterDisplay");
   var configGameBtn = document.getElementById("configGameBtn");
+  var gameCountdownOverlay = document.getElementById("gameCountdownOverlay");
+  var gameCountdownNumber = document.getElementById("gameCountdownNumber");
+  var gameContent = document.getElementById("gameContent");
+  var answerGrid = document.getElementById("answerGrid");
+  var gameTimer = document.getElementById("gameTimer");
+  var evalRankingsBody = document.getElementById("evalRankingsBody");
+  var evalQuestionInfo = document.getElementById("evalQuestionInfo");
 
-  /** Wechselt zur Registrierungs-Ansicht */
   function showRegister() {
     body.classList.remove("state-initial", "state-controller");
     body.classList.add("state-register");
   }
 
-  /** Wechselt zur Login-Ansicht */
   function showLogin() {
     body.classList.remove("state-register", "state-controller");
     body.classList.add("state-initial");
   }
 
-  /** Erzeugt URL für Web-Controller (Port 81, optional mit ?id=) */
   function getWebControllerUrl(controllerId) {
     var base = window.location.protocol + "//" + window.location.hostname + ":81";
     if (!controllerId) return base + "/controller.html";
     return base + "/controller.html?id=" + encodeURIComponent(controllerId);
   }
 
-  /** Öffnet Web-Controller in neuem Tab, aktualisiert Controller-Liste nach 1,5s */
   function openWebController() {
     window.open(getWebControllerUrl(), "_blank");
     if (window.loadAvailableControllers) {
@@ -76,7 +64,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  /** Wechselt Hauptbereich (Lobby, Spiel, Auswertung, Highscores), aktualisiert Tabs */
   function showMainSection(sectionId) {
     document.querySelectorAll(".main-section").forEach(function (section) {
       section.classList.remove("is-active");
@@ -100,24 +87,12 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  function setGameActive(active) {
-    document.querySelectorAll("#mainTabs .tab, #bottomNav .tab").forEach(function (tab) {
-      tab.disabled = active;
-    });
-
-    document.querySelectorAll(".panel.left, .main-section[data-main-section=\"lobby\"]").forEach(function (el) {
-      el.classList.toggle("is-locked", active);
-    });
-  }
-
-  /** Liefert gewählte Fragenanzahl (5/10/20) aus Mode-Pills */
   function getSelectedCount() {
     var activePill = document.querySelector("#modePills .pill.is-active");
     if (!activePill) return 5;
     return parseInt(activePill.getAttribute("data-count"), 10) || 5;
   }
 
-  /** Parst Kategorie-Zähler-Text „(2, 5, 2)“ zu [leicht, mittel, schwer] */
   function parseCategoryCount(text) {
     var match = (text || "").match(/\(?\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)?/);
     if (!match) return [0, 0, 0];
@@ -153,7 +128,6 @@ document.addEventListener("DOMContentLoaded", function () {
     return total;
   }
 
-  /** Prüft: genug Fragen, Spieler verbunden und alle bereit */
   function canStartGame() {
     if (getAvailableQuestionCount() !== getSelectedCount() || getSelectedCount() <= 0) return false;
     var players = window.lobbyPlayers || [];
@@ -166,7 +140,6 @@ document.addEventListener("DOMContentLoaded", function () {
     return connected.every(function (p) { return !!p.ready; });
   }
 
-  /** Aktiviert/Deaktiviert den „Spiel starten“-Button */
   function updateSpielStartenState() {
     if (!configGameBtn) return;
     configGameBtn.disabled = !canStartGame();
@@ -183,7 +156,6 @@ document.addEventListener("DOMContentLoaded", function () {
     updateSpielStartenState();
   }
 
-  /** Globale Funktionen für app_http.js und app_mqtt.js */
   window.showMainSection = showMainSection;
   window.showLogin = showLogin;
   window.canStartGame = canStartGame;
@@ -191,12 +163,10 @@ document.addEventListener("DOMContentLoaded", function () {
   window.getSelectedCount = getSelectedCount;
   window.updateSpielStartenState = updateSpielStartenState;
 
-  /** Event-Handler: Login/Registrierung */
   document.getElementById("goToRegister").addEventListener("click", showRegister);
   document.getElementById("backToLoginFromRegister").addEventListener("click", showLogin);
   document.getElementById("backToLogin").addEventListener("click", showLogin);
 
-  /** Controller-Liste: Auswahl per Klick */
   if (controllerList) {
     controllerList.addEventListener("click", function (event) {
       var card = event.target.closest(".controller-card.is-available");
@@ -210,7 +180,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  /** Haupt-Tabs: Lobby, Spiel, Auswertung, Web-Controller, Highscores */
   document.querySelectorAll("#mainTabs .tab, #bottomNav .tab").forEach(function (tab) {
     tab.addEventListener("click", function () {
       var section = tab.getAttribute("data-section");
@@ -225,7 +194,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  /** Highscore-Tabs: 5/10/20 Fragen */
   document.getElementById("highscoreTabs").addEventListener("click", function (event) {
     var button = event.target.closest(".score-tab");
     if (!button) return;
@@ -238,7 +206,6 @@ document.addEventListener("DOMContentLoaded", function () {
     if (window.loadHighscores) window.loadHighscores(parseInt(button.getAttribute("data-mode"), 10));
   });
 
-  /** Zurück zur Lobby (von Highscores/Auswertung) */
   document.getElementById("backToLobbyFromHighscores").addEventListener("click", function () {
     showMainSection("lobby");
     if (window.loadLobbyPlayers) window.loadLobbyPlayers();
@@ -249,7 +216,6 @@ document.addEventListener("DOMContentLoaded", function () {
     if (window.loadLobbyPlayers) window.loadLobbyPlayers();
   });
 
-  /** Mode-Pills: 5/10/20 Fragen */
   document.getElementById("modePills").addEventListener("click", function (event) {
     var pill = event.target.closest(".pill");
     if (!pill) return;
@@ -262,13 +228,11 @@ document.addEventListener("DOMContentLoaded", function () {
     refreshLobbyQuestionCounter();
   });
 
-  /** Kategorien/Schwierigkeit: Zähler bei Änderung aktualisieren */
   document.getElementById("categoryCheckboxes").addEventListener("change", refreshLobbyQuestionCounter);
   document.getElementById("difficultyCheckboxes").addEventListener("change", refreshLobbyQuestionCounter);
 
   refreshLobbyQuestionCounter();
 
-  /** Polling: Controller-Liste und Lobby alle 1s */
   if (window.loadAvailableControllers) {
     window.loadAvailableControllers();
     window.setInterval(window.loadAvailableControllers, 1000);

@@ -1,13 +1,8 @@
-/**
- * Quiz-Plattform – HTTP-API-Layer
- * Login, Registrierung, Controller-Bindung, Lobby, Spiel-Start, Highscores
- */
 window.currentUsername = "";
 
-/* Lobby-Session bei jedem Seitenaufruf anlegen (falls noch keine existiert) */
+// Erstellt eine neue Lobby-Session bei jedem Seitenaufruf.
 fetch("/api/lobby/create", { method: "POST" }).catch(function () {});
 
-/** Zeigt Inline-Meldung (Erfolg/Fehler) im angegebenen Element */
 function showInlineMessage(elementId, text, isSuccess) {
   var el = document.getElementById(elementId);
   if (!el) return;
@@ -35,7 +30,6 @@ function mapApiErrorToGerman(result) {
   return "Netzwerkfehler. Bitte erneut versuchen.";
 }
 
-/* Kategorie-Slugs zu DB-IDs */
 var CATEGORY_MAP = {
   "programmierung": 1,
   "datenbanken": 2,
@@ -49,21 +43,18 @@ var CATEGORY_MAP = {
   "linux-tools": 10
 };
 
-/* Schwierigkeit zu API-Enum */
 var DIFFICULTY_MAP = {
   "leicht": "EASY",
   "mittel": "MEDIUM",
   "schwer": "HARD"
 };
 
-/** Erzeugt Web-Controller-URL (Port 81, optional ?id=) */
 function getWebControllerUrl(controllerId) {
   var base = window.location.protocol + "//" + window.location.hostname + ":81";
   if (!controllerId) return base + "/controller.html";
   return base + "/controller.html?id=" + encodeURIComponent(controllerId);
 }
 
-/** Liest Spiel-Konfiguration aus UI (Modus, Kategorien, Schwierigkeit) */
 function readGameConfig() {
   var activePill = document.querySelector("#modePills .pill.is-active");
   var mode = activePill ? parseInt(activePill.getAttribute("data-count"), 10) : 5;
@@ -87,7 +78,6 @@ function readGameConfig() {
   };
 }
 
-/** Lädt RFID-Karte des angemeldeten Benutzers */
 function loadUserRfid() {
   if (!window.currentUsername) return;
   fetch("/api/auth/rfid?username=" + encodeURIComponent(window.currentUsername), { cache: "no-store" })
@@ -99,7 +89,6 @@ function loadUserRfid() {
     .catch(function () {});
 }
 
-/** Speichert/entfernt RFID-Karte des Benutzers per API */
 function saveUserRfid() {
   if (!window.currentUsername) {
     showInlineMessage("controllerError", "Bitte zuerst anmelden.", false);
@@ -171,7 +160,6 @@ function loadAvailableControllers(preferredControllerId) {
     });
 }
 
-/** Rendert Lobby-Spielerliste (Name, Controller-ID, Status, Austreten) */
 function applyLobbyPlayersData(players) {
   var list = document.getElementById("playerList");
   if (!list) return;
@@ -248,7 +236,6 @@ function applyLobbyPlayersData(players) {
   if (window.updateSpielStartenState) window.updateSpielStartenState();
 }
 
-/** Lädt Lobby-Status von GET /api/lobby/status */
 function loadLobbyPlayers() {
   fetch("/api/lobby/status")
     .then(function (response) { return response.json(); })
@@ -261,7 +248,6 @@ function loadLobbyPlayers() {
     });
 }
 
-/** Lädt Highscores von GET /api/highscores/:mode */
 function loadHighscores(mode) {
   var tbody = document.getElementById("highscoresBody");
   if (!tbody) return;
@@ -291,7 +277,7 @@ function loadHighscores(mode) {
         if (rank === 2) tr.className = "rank-2";
         if (rank === 3) tr.className = "rank-3";
 
-        tr.innerHTML = "<td>" + rank + "</td><td>" + (entry.username || "?") + "</td><td>" + formatScoreExact(score) + "</td><td>" + date + "</td>";
+        tr.innerHTML = "<td>" + rank + "</td><td>" + (entry.username || "?") + "</td><td>" + score + "</td><td>" + date + "</td>";
         tbody.appendChild(tr);
       });
     })
@@ -300,7 +286,6 @@ function loadHighscores(mode) {
     });
 }
 
-/** Erstellt Web-Controller per POST /api/controllers/create-web */
 function createWebController(callback) {
   fetch("/api/controllers/create-web", {
     method: "POST",
@@ -374,7 +359,7 @@ document.getElementById("loginBtn").addEventListener("click", function (event) {
     });
 });
 
-/* Event-Handler: Registrierung */
+// --- Register ---
 document.getElementById("register-form").addEventListener("submit", function (event) {
   event.preventDefault();
   showInlineMessage("registerError", "", false);
@@ -450,7 +435,7 @@ document.getElementById("rfidSaveBtn").addEventListener("click", function () {
   saveUserRfid();
 });
 
-/* Event-Handler: Weiter zur Lobby (Controller binden + Lobby beitreten) */
+// --- Weiter zur Lobby (Controller binden + Lobby beitreten) ---
 document.getElementById("weiterZurLobby").addEventListener("click", function (event) {
   event.preventDefault();
   showInlineMessage("controllerError", "", false);
@@ -520,6 +505,7 @@ document.getElementById("refreshLobby").addEventListener("click", function () {
 // --- Spiel-Konfiguration und Start ---
 document.getElementById("configGameBtnWrap").addEventListener("click", function () {
   var config = readGameConfig();
+  var feedbackEl = document.getElementById("configGameError");
   var button = document.getElementById("configGameBtn");
 
   showInlineMessage("configGameError", "", false);

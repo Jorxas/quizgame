@@ -20,24 +20,6 @@ public class MqttService {
         this.mqttClient = mqttClient;
     }
 
-    public void publishGameStart() {
-        JsonObject data = new JsonObject().put("action", "start");
-        mqttClient.publish(mqttMessagePrefix + "game/start", data.toBuffer(), MqttQoS.AT_MOST_ONCE, false, false);
-        logger.info("📡 MQTT published game start: {}", data);
-    }
-
-    public void publishGameStop() {
-        JsonObject data = new JsonObject().put("action", "stop");
-        mqttClient.publish(mqttMessagePrefix + "game/stop", data.toBuffer(), MqttQoS.AT_MOST_ONCE, false, false);
-        logger.info("📡 MQTT published game stop: {}", data);
-    }
-
-    public void publishObjectCreated(String name) {
-        JsonObject data = new JsonObject().put("name", name);
-        mqttClient.publish(mqttMessagePrefix + "game/object/created", data.toBuffer(), MqttQoS.AT_MOST_ONCE, false, false);
-        logger.info("📡 MQTT published object created: {}", data);
-    }
-
     public void publishDemoMessage(String message) {
         JsonObject data = new JsonObject().put("message", message);
         mqttClient.publish(mqttMessagePrefix + "demo/message", data.toBuffer(), MqttQoS.AT_MOST_ONCE, false, false);
