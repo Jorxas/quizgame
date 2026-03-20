@@ -7,17 +7,20 @@
   var mqttClient = null;
   var gameTimerInterval = null;
 
+  /** Entfernt HTML-Sonderzeichen aus einem Text (XSS-Schutz). */
   function escapeHtml(text) {
     var div = document.createElement("div");
     div.textContent = text || "";
     return div.innerHTML;
   }
 
+  /** Formatiert die Punktzahl exakt als String ohne Nachkommastellen-Verlust. */
   function formatScoreExact(n) {
     var num = Number(n);
     return isNaN(num) ? "0" : String(num);
   }
 
+  /** Aktiviert oder deaktiviert die Spielfunktionen (Tabs sperren, Lobby sperren). */
   function setGameActive(active) {
     document.querySelectorAll("#mainTabs .tab, #bottomNav .tab").forEach(function (tab) {
       tab.disabled = active;
@@ -27,6 +30,7 @@
     });
   }
 
+  /** Verarbeitet den Spielzustand und wechselt die Ansicht (Lobby, Spiel, Auswertung, Highscores). */
   function handleGameState(state) {
     var gameCountdownOverlay = document.getElementById("gameCountdownOverlay");
     if (state === "LOBBY") {
@@ -53,6 +57,7 @@
     }
   }
 
+  /** Zeigt den Countdown bis zur nächsten Frage an. */
   function handleCountdown(tick) {
     var gameCountdownOverlay = document.getElementById("gameCountdownOverlay");
     var gameCountdownNumber = document.getElementById("gameCountdownNumber");
@@ -70,6 +75,7 @@
     }
   }
 
+  /** Zeigt die aktuelle Frage mit Antwortoptionen und Timer an. */
   function handleQuestion(data) {
     var gameCountdownOverlay = document.getElementById("gameCountdownOverlay");
     var gameQuestionCounterDisplay = document.getElementById("gameQuestionCounterDisplay");
@@ -155,6 +161,7 @@
     }
   }
 
+  /** Verarbeitet das Spielende und wechselt zur Auswertungsansicht. */
   function handleGameEnded() {
     var gameMode = window.getSelectedCount ? window.getSelectedCount() : 5;
 
@@ -168,6 +175,7 @@
     if (window.showMainSection) window.showMainSection("auswertung");
   }
 
+  /** Verbindet den Frontend-MQTT-Client und abonniert alle Spiel-Topics. */
   function connectFrontendMqtt() {
     var env, prefix, host, port, brokerUrl;
 
@@ -183,8 +191,7 @@
 
     mqttClient = mqtt.connect(brokerUrl, {
       username: env.MQTT_USERNAME || "",
-      password: env.MQTT_PASSWORD || "",
-      reconnectPeriod: 5000
+      password: env.MQTT_PASSWORD || ""
     });
 
     mqttClient.on("connect", function () {

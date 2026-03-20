@@ -92,7 +92,7 @@ public class ControllersRepository {
                     try {
                         RowSet<Row> rows = ar.result();
                         if (!rows.iterator().hasNext()) {
-                            resultHandler.handle(Future.failedFuture("Controller not found"));
+                            resultHandler.handle(Future.failedFuture("Controller nicht gefunden."));
                             return;
                         }
                         Row row = rows.iterator().next();
@@ -111,11 +111,7 @@ public class ControllersRepository {
                 });
     }
 
-    /**
-     * Creates a controller if it does not exist (ID sent via MQTT register).
-     * controllerType: "HARDWARE" for Arduino, "WEB" for web controller.
-     * Uses INSERT ... ON DUPLICATE KEY UPDATE to set last_seen_at (type only set on insert).
-     */
+    /** Erstellt Controller falls nicht vorhanden (MQTT-Register), aktualisiert last_seen_at. */
     public void createControllerIfNotExists(String controllerId, String controllerType, Handler<AsyncResult<Void>> resultHandler) {
         String type = ("HARDWARE".equalsIgnoreCase(controllerType)) ? "HARDWARE" : "WEB";
         String sql = "INSERT INTO controllers (controller_id, controller_type, status) VALUES (?, ?, 'FREE') " +
@@ -130,7 +126,7 @@ public class ControllersRepository {
                 });
     }
 
-    /** Updates last_seen_at for the given controller_id (e.g. on MQTT register or pong). */
+    /** Aktualisiert last_seen_at des Controllers (z.B. bei MQTT-Register oder Pong). */
     public void updateLastSeen(String controllerId, Handler<AsyncResult<Void>> resultHandler) {
         String sql = "UPDATE controllers SET last_seen_at = CURRENT_TIMESTAMP WHERE controller_id = ?";
         jdbcPool.preparedQuery(sql)
@@ -143,7 +139,7 @@ public class ControllersRepository {
                 });
     }
 
-    /** Sets status (e.g. OFFLINE) for the given controller_id. */
+    /** Setzt den Status des Controllers (z.B. OFFLINE). */
     public void updateStatus(String controllerId, String status, Handler<AsyncResult<Void>> resultHandler) {
         String sql = "UPDATE controllers SET status = ? WHERE controller_id = ?";
         jdbcPool.preparedQuery(sql)

@@ -431,17 +431,20 @@ window.__ENV__ = {
   var currentQuestionId = 0;
   var totalScore = 0;
 
+  /** Initialisiert den Controller und startet die MQTT-Verbindung. */
   function initController() {
     if (controllerIdDisplay) controllerIdDisplay.textContent = controllerId || "—";
     connectMqtt();
   }
 
+  /** Aktualisiert die Ready/Not-ready-Anzeige in der UI. */
   function setReadyUi(ready) {
     currentReady = !!ready;
     updateStatusDisplay();
     if (readyButton) readyButton.classList.toggle("is-selected", currentReady);
     if (notReadyButton) notReadyButton.classList.toggle("is-selected", !currentReady);
   }
+  /** Zeigt Status an: „Playing“ während des Spiels, sonst Ready/Not ready. */
   function updateStatusDisplay() {
     var isPlaying = gameState === "COUNTDOWN" || gameState === "QUESTION" || gameState === "EVALUATION";
     var text = isPlaying ? "Playing" : (currentReady ? "Ready" : "Not ready");
@@ -453,6 +456,7 @@ window.__ENV__ = {
     }
   }
 
+  /** Zeigt den verbundenen Spieler und dessen Bereitschaft an. */
   function setPlayerUi(playerId, ready) {
     currentPlayerId = playerId || "";
     if (controllerPlayerDisplay) controllerPlayerDisplay.textContent = currentPlayerId || "Nicht verbunden";
@@ -460,34 +464,38 @@ window.__ENV__ = {
     subscribePlayerTopics();
   }
 
+  /** Abonniert die spielerspezifischen MQTT-Topics (Status, Ergebnis). */
   function subscribePlayerTopics() {
     if (!client || !currentPlayerId) return;
     var statusTopic = prefix + "player/" + currentPlayerId + "/status";
     if (subscribedStatusTopic !== statusTopic) {
       if (subscribedStatusTopic) client.unsubscribe(subscribedStatusTopic);
-      client.subscribe(statusTopic, { qos: 0 });
+      client.subscribe(statusTopic);
       subscribedStatusTopic = statusTopic;
     }
     var resultTopic = prefix + "player/" + currentPlayerId + "/result";
     if (subscribedResultTopic !== resultTopic) {
       if (subscribedResultTopic) client.unsubscribe(subscribedResultTopic);
-      client.subscribe(resultTopic, { qos: 0 });
+      client.subscribe(resultTopic);
       subscribedResultTopic = resultTopic;
     }
   }
 
+  /** Sendet den Bereitschaftsstatus (ready/not-ready) per MQTT. */
   function publishReadyState(ready) {
     if (!client || !currentPlayerId) return;
     var topic = prefix + "player/" + currentPlayerId + "/ready";
-    client.publish(topic, JSON.stringify({ action: ready ? "ready" : "not-ready", ready: ready, playerId: currentPlayerId, controllerId: controllerId, ts: Date.now() }), { qos: 0 });
+    client.publish(topic, JSON.stringify({ action: ready ? "ready" : "not-ready", ready: ready, playerId: currentPlayerId, controllerId: controllerId, ts: Date.now() }));
   }
 
+  /** Sendet die gewählte Antwort (A/B/C/D) per MQTT. */
   function publishAnswer(option) {
     if (!client || !currentPlayerId || !currentQuestionId) return;
     var topic = prefix + "player/" + currentPlayerId + "/answer";
-    client.publish(topic, JSON.stringify({ questionId: currentQuestionId, selectedOption: option, playerId: currentPlayerId, controllerId: controllerId, ts: Date.now() }), { qos: 0 });
+    client.publish(topic, JSON.stringify({ questionId: currentQuestionId, selectedOption: option, playerId: currentPlayerId, controllerId: controllerId, ts: Date.now() }));
   }
 
+  /** Zeigt den Countdown bis zur nächsten Frage an. */
   function showCountdown(tick) {
     if (countdownOverlay) countdownOverlay.style.display = "flex";
     if (countdownNumber) countdownNumber.textContent = tick;
@@ -495,6 +503,7 @@ window.__ENV__ = {
     if (controllerAnswers) controllerAnswers.style.display = "none";
   }
 
+  /** Zeigt die aktuelle Frage mit leeren Antwort-Buttons an. */
   function showQuestion(data) {
     if (countdownOverlay) countdownOverlay.style.display = "none";
     if (resultFeedback) resultFeedback.style.display = "none";
@@ -513,6 +522,7 @@ window.__ENV__ = {
     if (hintBox) hintBox.textContent = "Wähle deine Antwort!";
   }
 
+  /** Zeigt das Ergebnis (richtig/falsch) mit Punkten an. */
   function showResult(data) {
     if (resultFeedback) {
       resultFeedback.style.display = "flex";
@@ -524,11 +534,13 @@ window.__ENV__ = {
     if (scoreValue) scoreValue.textContent = totalScore.toFixed(1);
   }
 
+  /** Zeigt „Auswertung läuft“ und sperrt die Antwort-Buttons. */
   function showEvaluation() {
     if (hintBox) hintBox.textContent = "Auswertung läuft...";
     if (controllerAnswers) controllerAnswers.classList.add("is-locked");
   }
 
+  /** Setzt alles zurück und zeigt das Spielende mit End-Score. */
   function showEnded(data) {
     gameState = "LOBBY";
     currentQuestionId = 0;
@@ -558,33 +570,30 @@ window.__ENV__ = {
     var wsUrl = "ws://" + host + ":" + port;
     client = mqtt.connect(wsUrl, {
       username: env.MQTT_USERNAME || "",
-      password: env.MQTT_PASSWORD || "",
-      clientId: "web-controller-" + controllerId,
-      clean: true,
-      reconnectPeriod: 2000
+      password: env.MQTT_PASSWORD || ""
     });
     client.on("connect", function () {
       var topicRegister = prefix + "controller/" + controllerId + "/register";
-      client.publish(topicRegister, JSON.stringify({ action: "register", controllerId: controllerId }), { qos: 0 });
-      client.subscribe(prefix + "controller/" + controllerId + "/ping", { qos: 0 });
-      client.subscribe(prefix + "controller/" + controllerId + "/status", { qos: 0 });
+      client.publish(topicRegister, JSON.stringify({ action: "register", controllerId: controllerId }));
+      client.subscribe(prefix + "controller/" + controllerId + "/ping");
+      client.subscribe(prefix + "controller/" + controllerId + "/status");
       setInterval(function () {
         if (client && client.connected) {
-          client.publish(prefix + "controller/" + controllerId + "/request-status", JSON.stringify({}), { qos: 0 });
+          client.publish(prefix + "controller/" + controllerId + "/request-status", JSON.stringify({}));
         }
       }, 5000);
-      client.subscribe(prefix + "game/state", { qos: 0 });
-      client.subscribe(prefix + "game/countdown", { qos: 0 });
-      client.subscribe(prefix + "game/question", { qos: 0 });
-      client.subscribe(prefix + "game/evaluation", { qos: 0 });
-      client.subscribe(prefix + "game/ended", { qos: 0 });
-      client.publish(prefix + "controller/" + controllerId + "/request-status", JSON.stringify({}), { qos: 0 });
+      client.subscribe(prefix + "game/state");
+      client.subscribe(prefix + "game/countdown");
+      client.subscribe(prefix + "game/question");
+      client.subscribe(prefix + "game/evaluation");
+      client.subscribe(prefix + "game/ended");
+      client.publish(prefix + "controller/" + controllerId + "/request-status", JSON.stringify({}));
     });
     /* MQTT-Nachrichten: ping/pong, status, game/state, game/question, game/evaluation, game/ended. */
     client.on("message", function (topic, message) {
       var msg = message ? message.toString() : "";
       if (topic.endsWith("/ping")) {
-        client.publish(prefix + "controller/" + controllerId + "/pong", JSON.stringify({ action: "pong", controllerId: controllerId, ts: Date.now() }), { qos: 0 });
+        client.publish(prefix + "controller/" + controllerId + "/pong", JSON.stringify({ action: "pong", controllerId: controllerId, ts: Date.now() }));
         return;
       }
       if (topic === prefix + "controller/" + controllerId + "/status") {
@@ -614,6 +623,7 @@ window.__ENV__ = {
 
   initController();
 
+  /** Bindet die Klick-Handler für die Antwort-Buttons (A/B/C/D, Ready/Not ready). */
   function attachAnswerHandlers(container) {
     if (!container) return;
     container.querySelectorAll(".answer-btn").forEach(function (btn) {

@@ -6,6 +6,7 @@
 
 namespace hw::buttons {
 
+/** Mappt Pin auf internen Index (0–3). */
 static int pinToIndex(uint8_t pin) {
   if (pin == PIN_BTN_GREEN) return 0;
   if (pin == PIN_BTN_RED) return 1;
@@ -14,6 +15,7 @@ static int pinToIndex(uint8_t pin) {
   return -1;
 }
 
+/** Initialisiert die vier Buttons (Pullup oder aktiv HIGH). */
 void begin() {
   // Buttons with Pullup -> aktiv LOW
   if (BUTTON_ACTIVE_LOW) {
@@ -30,6 +32,7 @@ void begin() {
   }
 }
 
+/** Liefert true bei gedrückter Taste (entprellt, eine Klick-Erkennung pro Druck). */
 bool isPressedDebounced(uint8_t pin) {
   int idx = pinToIndex(pin);
   if (idx < 0) return false;

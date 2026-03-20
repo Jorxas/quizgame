@@ -3,6 +3,7 @@ window.currentUsername = "";
 // Erstellt eine neue Lobby-Session bei jedem Seitenaufruf.
 fetch("/api/lobby/create", { method: "POST" }).catch(function () {});
 
+/** Zeigt eine Inline-Nachricht (Erfolg/Fehler) im angegebenen Element an. */
 function showInlineMessage(elementId, text, isSuccess) {
   var el = document.getElementById(elementId);
   if (!el) return;
@@ -13,21 +14,17 @@ function showInlineMessage(elementId, text, isSuccess) {
   }
 }
 
-/**
- * Mappt bekannte englische API-Fehlermeldungen auf deutsche Texte (Fallback für Netzwerk-/Alt-Backend).
- */
-function mapApiErrorToGerman(result) {
-  var t = (result && result.text) ? String(result.text).toLowerCase() : "";
-  if (t.indexOf("invalid credentials") >= 0) return "Benutzername oder Passwort falsch.";
-  if (t.indexOf("invalid request") >= 0 || t.indexOf("ungültige anfrage") >= 0) return "Ungültige Anfrage.";
-  if (t.indexOf("username and password required") >= 0 || t.indexOf("benutzername und passwort erforderlich") >= 0) return "Benutzername und Passwort erforderlich.";
-  if (t.indexOf("username already exists") >= 0 || t.indexOf("benutzername existiert bereits") >= 0) return "Benutzername existiert bereits.";
-  if (t.indexOf("username required") >= 0 || t.indexOf("benutzername erforderlich") >= 0) return "Benutzername erforderlich.";
-  if (t.indexOf("nicht alle spieler") >= 0 || t.indexOf("alle spieler sind bereit") >= 0) return "Nicht alle Spieler sind bereit.";
-  if (t.indexOf("bereits in der session") >= 0) return "Du bist bereits in der Session angemeldet.";
-  if (t.indexOf("rfid-karte bereits vergeben") >= 0) return "RFID-Karte bereits vergeben.";
-  if (result && result.text) return result.text;
-  return "Netzwerkfehler. Bitte erneut versuchen.";
+/** Liefert die Fehlermeldung (Backend sendet bereits Deutsch) oder Fallback bei Netzwerkfehler. */
+function getApiErrorMessage(resultOrError) {
+  var msg = "";
+  if (resultOrError) {
+    if (typeof resultOrError.text !== "undefined") msg = String(resultOrError.text || "").trim();
+    else if (resultOrError.message) msg = String(resultOrError.message).trim();
+  }
+  if (!msg || msg === "Failed to fetch") {
+    return "Verbindungsfehler. Bitte erneut versuchen.";
+  }
+  return msg;
 }
 
 var CATEGORY_MAP = {
@@ -49,12 +46,14 @@ var DIFFICULTY_MAP = {
   "schwer": "HARD"
 };
 
+/** Erstellt die URL zum Web-Controller (optional mit Controller-ID). */
 function getWebControllerUrl(controllerId) {
   var base = window.location.protocol + "//" + window.location.hostname + ":81";
   if (!controllerId) return base + "/controller.html";
   return base + "/controller.html?id=" + encodeURIComponent(controllerId);
 }
 
+/** Liest die aktuelle Spielkonfiguration (Modus, Kategorien, Schwierigkeiten) aus der UI. */
 function readGameConfig() {
   var activePill = document.querySelector("#modePills .pill.is-active");
   var mode = activePill ? parseInt(activePill.getAttribute("data-count"), 10) : 5;
@@ -78,6 +77,7 @@ function readGameConfig() {
   };
 }
 
+/** Lädt die RFID-Karte des angemeldeten Benutzers vom Server. */
 function loadUserRfid() {
   if (!window.currentUsername) return;
   fetch("/api/auth/rfid?username=" + encodeURIComponent(window.currentUsername), { cache: "no-store" })
@@ -89,6 +89,7 @@ function loadUserRfid() {
     .catch(function () {});
 }
 
+/** Speichert oder entfernt die RFID-Karte des Benutzers über die API. */
 function saveUserRfid() {
   if (!window.currentUsername) {
     showInlineMessage("controllerError", "Bitte zuerst anmelden.", false);
@@ -110,7 +111,7 @@ function saveUserRfid() {
       if (result.ok) {
         showInlineMessage("controllerError", rfidUid ? "RFID-Karte gespeichert." : "RFID-Karte entfernt.", true);
       } else {
-        showInlineMessage("controllerError", mapApiErrorToGerman(result), false);
+        showInlineMessage("controllerError", getApiErrorMessage(result), false);
       }
     })
     .catch(function () {
@@ -118,6 +119,7 @@ function saveUserRfid() {
     });
 }
 
+/** Lädt die verfügbaren Controller und rendert sie als Karten. */
 function loadAvailableControllers(preferredControllerId) {
   var list = document.getElementById("controllerList");
   if (!list) return;
@@ -160,6 +162,7 @@ function loadAvailableControllers(preferredControllerId) {
     });
 }
 
+/** Übernimmt die Lobby-Spielerdaten und rendert sie in der Spielerliste. */
 function applyLobbyPlayersData(players) {
   var list = document.getElementById("playerList");
   if (!list) return;
@@ -236,6 +239,7 @@ function applyLobbyPlayersData(players) {
   if (window.updateSpielStartenState) window.updateSpielStartenState();
 }
 
+/** Lädt den aktuellen Lobby-Status (Spielerliste) vom Server. */
 function loadLobbyPlayers() {
   fetch("/api/lobby/status")
     .then(function (response) { return response.json(); })
@@ -248,6 +252,7 @@ function loadLobbyPlayers() {
     });
 }
 
+/** Lädt die Highscores für den angegebenen Modus (Fragenanzahl). */
 function loadHighscores(mode) {
   var tbody = document.getElementById("highscoresBody");
   if (!tbody) return;
@@ -286,6 +291,7 @@ function loadHighscores(mode) {
     });
 }
 
+/** Erstellt einen neuen Web-Controller über die API. */
 function createWebController(callback) {
   fetch("/api/controllers/create-web", {
     method: "POST",
@@ -350,7 +356,7 @@ document.getElementById("loginBtn").addEventListener("click", function (event) {
         loadUserRfid();
         showInlineMessage("loginError", "Anmeldung erfolgreich.", true);
       } else {
-        showInlineMessage("loginError", mapApiErrorToGerman(result), false);
+        showInlineMessage("loginError", getApiErrorMessage(result), false);
       }
     })
     .catch(function (error) {
@@ -405,7 +411,7 @@ document.getElementById("register-form").addEventListener("submit", function (ev
       if (result.ok) {
         showInlineMessage("registerError", "Benutzer erstellt.", true);
       } else {
-        showInlineMessage("registerError", mapApiErrorToGerman(result), false);
+        showInlineMessage("registerError", getApiErrorMessage(result), false);
       }
     })
     .catch(function (error) {
@@ -462,7 +468,7 @@ document.getElementById("weiterZurLobby").addEventListener("click", function (ev
     })
     .then(function (bindResult) {
       if (!bindResult.ok) {
-        showInlineMessage("controllerError", mapApiErrorToGerman(bindResult), false);
+        showInlineMessage("controllerError", getApiErrorMessage(bindResult), false);
         return null;
       }
       return fetch("/api/lobby/join", {
@@ -489,7 +495,7 @@ document.getElementById("weiterZurLobby").addEventListener("click", function (ev
         window.currentUsername = "";
         showInlineMessage("loginError", "In der Lobby. Gerät bereit für den nächsten Spieler.", true);
       } else {
-        showInlineMessage("controllerError", mapApiErrorToGerman(lobbyResult), false);
+        showInlineMessage("controllerError", getApiErrorMessage(lobbyResult), false);
       }
     })
     .catch(function (error) {
@@ -562,7 +568,7 @@ document.getElementById("configGameBtnWrap").addEventListener("click", function 
     .catch(function (error) {
       button.disabled = false;
       if (window.updateSpielStartenState) window.updateSpielStartenState();
-      showInlineMessage("configGameError", mapApiErrorToGerman({ text: error && error.message }), false);
+      showInlineMessage("configGameError", getApiErrorMessage(error), false);
       console.error("Error:", error);
     });
 });

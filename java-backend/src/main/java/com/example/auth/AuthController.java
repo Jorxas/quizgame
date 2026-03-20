@@ -20,6 +20,7 @@ public class AuthController implements HttpController {
         this.lobbyService = new LobbyService();
     }
 
+    /** Registriert alle Auth-Routes (Register, Login, RFID). */
     @Override
     public void registerRoutes(Router router) {
         router.post("/api/auth/register").handler(this::handleRegister);
@@ -29,10 +30,11 @@ public class AuthController implements HttpController {
         router.put("/api/auth/rfid").handler(this::handleUpdateRfid);
     }
 
+    /** Liefert die RFID-Karte des Benutzers (GET /api/auth/rfid). */
     private void handleGetRfid(RoutingContext ctx) {
         String username = ctx.request().getParam("username");
         if (username == null || username.isBlank()) {
-            ctx.response().setStatusCode(400).end("username erforderlich.");
+            ctx.response().setStatusCode(400).end("Benutzername erforderlich.");
             return;
         }
         authService.getRfidForUser(username.trim(), ar -> {
@@ -48,6 +50,7 @@ public class AuthController implements HttpController {
         });
     }
 
+    /** Aktualisiert die RFID-Karte des Benutzers (PUT /api/auth/rfid). */
     private void handleUpdateRfid(RoutingContext ctx) {
         JsonObject body = ctx.body().asJsonObject();
         if (body == null) {
@@ -77,6 +80,7 @@ public class AuthController implements HttpController {
         });
     }
 
+    /** Sucht Benutzernamen anhand der RFID-UID (GET /api/auth/rfid/:uid). */
     private void handleRfidLookup(RoutingContext ctx) {
         String uid = ctx.pathParam("uid");
         if (uid == null || uid.isBlank()) {
@@ -95,6 +99,7 @@ public class AuthController implements HttpController {
         });
     }
 
+    /** Registriert einen neuen Benutzer (POST /api/auth/register). */
     private void handleRegister(RoutingContext ctx) {
         JsonObject body = ctx.body().asJsonObject();
         if (body == null) {

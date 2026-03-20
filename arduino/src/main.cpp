@@ -18,6 +18,7 @@ static bool g_ready = false;
 // Last question we sent an answer for (avoid double-send per question)
 static long g_lastAnsweredQuestionId = 0;
 
+/** Liest Tasten, sendet Antworten (A-D) oder Ready/Not-ready per MQTT. */
 static void handleButtons() {
   String boundUsername = net::wifi_mqtt::getBoundUsername();
   long currentQ = net::wifi_mqtt::getCurrentQuestionId();
@@ -116,6 +117,7 @@ static void handleButtons() {
   hw::neopixel::off();
 }
 
+/** Arduino-Init: Serial, Buttons, NeoPixel, OLED, RFID, MQTT-Register. */
 void setup() {
   Serial.begin(9600);
   for (uint32_t t = millis(); !Serial && (millis() - t < 2000);) delay(10);
@@ -134,6 +136,7 @@ void setup() {
   }
 }
 
+/** Verarbeitet neuen RFID-Scan, ruft Lookup auf, zeigt Willkommen oder Fehler. */
 static void handleRfidScan() {
   if (!hw::rfid::hasNewScan()) return;
   const String uid = hw::rfid::lastUid();
@@ -154,6 +157,7 @@ static void handleRfidScan() {
   }
 }
 
+/** Aktualisiert OLED-Anzeige (Spielername, Status, Score oder +X Pkt). */
 static void refreshOled() {
   String bound = net::wifi_mqtt::getBoundUsername();
   if (bound.length() == 0) return;
@@ -165,6 +169,7 @@ static void refreshOled() {
   hw::oled::showPlayerStatus(bound.c_str(), net::wifi_mqtt::getBoundReady(), net::wifi_mqtt::getTotalScore());
 }
 
+/** Hauptschleife: MQTT, RFID, Buttons, OLED-Refresh. */
 void loop() {
   net::wifi_mqtt::processMqtt();
   hw::rfid::service();

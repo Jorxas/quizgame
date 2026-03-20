@@ -56,6 +56,7 @@ public class HighscoresController implements HttpController {
         });
     }
 
+    /** Parst String zu Integer, bei Fehler wird defaultValue zurückgegeben. */
     private static Integer parseInt(String s, Integer defaultValue) {
         if (s == null || s.isEmpty()) return defaultValue;
         try {

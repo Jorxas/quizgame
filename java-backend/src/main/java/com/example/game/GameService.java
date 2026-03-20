@@ -111,6 +111,7 @@ public class GameService {
         });
     }
 
+    /** Konvertiert JsonArray zu Liste von Long. */
     private static List<Long> toLongList(JsonArray arr) {
         List<Long> list = new ArrayList<>();
         if (arr != null) {
@@ -122,6 +123,7 @@ public class GameService {
         return list;
     }
 
+    /** Konvertiert JsonArray zu Liste von String. */
     private static List<String> toStringList(JsonArray arr) {
         List<String> list = new ArrayList<>();
         if (arr != null) {

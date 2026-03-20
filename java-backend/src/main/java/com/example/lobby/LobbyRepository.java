@@ -125,6 +125,7 @@ public class LobbyRepository {
                 });
     }
 
+    /** Fügt Spieler intern zur Lobby hinzu (Benutzer- und Controller-ID erforderlich). */
     private void doAddPlayerToLobby(Long sessionId, String username, Handler<AsyncResult<Void>> resultHandler) {
         jdbcPool.preparedQuery("SELECT id FROM users WHERE username = ? LIMIT 1")
                 .execute(Tuple.of(username), userAr -> {
@@ -190,6 +191,7 @@ public class LobbyRepository {
                 });
     }
 
+    /** Entfernt Spieler aus der aktuellen Lobby. */
     public void removePlayerFromLobby(String username, Handler<AsyncResult<Void>> resultHandler) {
         String sql = "DELETE gsp FROM game_session_players gsp " +
                 "JOIN game_sessions gs ON gs.id = gsp.game_session_id " +
@@ -205,7 +207,7 @@ public class LobbyRepository {
                         return;
                     }
                     if (ar.result().rowCount() == 0) {
-                        resultHandler.handle(Future.failedFuture("Player not found in current lobby"));
+                        resultHandler.handle(Future.failedFuture("Spieler nicht in der aktuellen Lobby gefunden."));
                         return;
                     }
                     resultHandler.handle(Future.succeededFuture());
@@ -227,7 +229,7 @@ public class LobbyRepository {
                         return;
                     }
                     if (ar.result().rowCount() == 0) {
-                        resultHandler.handle(Future.failedFuture("Player not found in lobby"));
+                        resultHandler.handle(Future.failedFuture("Spieler nicht in der Lobby gefunden."));
                         return;
                     }
                     resultHandler.handle(Future.succeededFuture());
@@ -251,7 +253,7 @@ public class LobbyRepository {
                     }
                     RowSet<Row> rows = ar.result();
                     if (!rows.iterator().hasNext()) {
-                        resultHandler.handle(Future.failedFuture("Player not found in lobby"));
+                        resultHandler.handle(Future.failedFuture("Spieler nicht in der Lobby gefunden."));
                         return;
                     }
                     Row row = rows.iterator().next();

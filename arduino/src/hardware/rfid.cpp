@@ -13,6 +13,7 @@ static uint32_t g_lastReadMs = 0;
 static String g_lastUid;
 static bool g_newScan = false;
 
+/** Initialisiert SPI und MFRC522-RFID-Leser. */
 void begin() {
 
   SPI.begin();
@@ -23,6 +24,7 @@ void begin() {
   g_readerDetected = detectReaderOnce();
 }
 
+/** Muss regelmäßig aufgerufen werden: prüft Karte, setzt g_newScan bei neuem UID. */
 void service() {
   const uint32_t now = millis();
 
@@ -53,28 +55,34 @@ void service() {
   g_rfid.PCD_StopCrypto1();
 }
 
+/** Liefert true, wenn der RFID-Leser erkannt wurde. */
 bool isReaderDetected() {
   return g_readerDetected;
 }
 
+/** Liefert die letzte gelesene Karten-UID. */
 const String& lastUid() {
   return g_lastUid;
 }
 
+/** Liefert true, wenn ein neuer RFID-Scan noch nicht verarbeitet wurde. */
 bool hasNewScan() {
   return g_newScan;
 }
 
+/** Markiert den aktuellen Scan als verarbeitet. */
 void consumeNewScan() {
   g_newScan = false;
 }
 
+/** Prüft einmalig, ob der RFID-Leser antwortet. */
 bool detectReaderOnce() {
   byte v = g_rfid.PCD_ReadRegister(MFRC522::VersionReg);
   // If 0x00 or 0xFF the read probably failed.
   return !(v == 0x00 || v == 0xFF);
 }
 
+/** Konvertiert UID-Byte-Array zu hexadezimalem String (Großbuchstaben). */
 String uidToString(const MFRC522::Uid &uid) {
   String out;
   out.reserve(uid.size * 2);

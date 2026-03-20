@@ -21,6 +21,7 @@ public class AuthRepository {
         this.jdbcPool = DatabaseClient.getInstance();
     }
 
+    /** Fügt einen neuen Benutzer in die Datenbank ein (Passwort wird gehasht). */
     public void insertUser(String username, String password, String rfidUid, Handler<AsyncResult<Void>> resultHandler) {
         String rfid = (rfidUid != null && !rfidUid.isBlank()) ? rfidUid.trim() : null;
         String hash = BCrypt.hashpw(password, BCrypt.gensalt(10));
@@ -60,6 +61,7 @@ public class AuthRepository {
                 });
     }
 
+    /** Liest die RFID-UID des Benutzers aus der Datenbank. */
     public void getRfidForUser(String username, Handler<AsyncResult<String>> resultHandler) {
         String sql = "SELECT rfid_uid FROM users WHERE username = ? LIMIT 1";
         jdbcPool.preparedQuery(sql)
@@ -73,6 +75,7 @@ public class AuthRepository {
                 });
     }
 
+    /** Aktualisiert die RFID-UID des Benutzers in der Datenbank. */
     public void updateRfidForUser(String username, String rfidUid, Handler<AsyncResult<Void>> resultHandler) {
         String rfid = (rfidUid != null && !rfidUid.isBlank()) ? rfidUid.trim().replaceAll("\\s+", "").toUpperCase() : null;
         String sql = "UPDATE users SET rfid_uid = ? WHERE username = ?";
@@ -86,6 +89,7 @@ public class AuthRepository {
                 });
                     }
 
+    /** Findet den Benutzernamen anhand der RFID-UID. */
     public void findUsernameByRfidUid(String rfidUid, Handler<AsyncResult<String>> resultHandler) {
         String sql = "SELECT username FROM users WHERE rfid_uid = ? LIMIT 1";
         jdbcPool.preparedQuery(sql)

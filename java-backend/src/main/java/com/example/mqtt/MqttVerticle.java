@@ -14,6 +14,7 @@ public class MqttVerticle extends AbstractVerticle {
 
     private static final Logger logger = LoggerFactory.getLogger(MqttVerticle.class);
 
+    /** Verbindet mit MQTT-Broker und startet EventBus- sowie MQTT-Consumer. */
     @Override
     public void start() {
 

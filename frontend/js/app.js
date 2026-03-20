@@ -1,3 +1,4 @@
+/** Zeigt ein modales Nachrichtenfenster (Info/Fehler) mit OK-Button. */
 function showMessage(text, type) {
   var overlay = document.createElement("div");
   var box = document.createElement("div");
@@ -41,22 +42,26 @@ document.addEventListener("DOMContentLoaded", function () {
   var evalRankingsBody = document.getElementById("evalRankingsBody");
   var evalQuestionInfo = document.getElementById("evalQuestionInfo");
 
+  /** Wechselt zur Registrierungsansicht. */
   function showRegister() {
     body.classList.remove("state-initial", "state-controller");
     body.classList.add("state-register");
   }
 
+  /** Wechselt zurück zur Login-Ansicht. */
   function showLogin() {
     body.classList.remove("state-register", "state-controller");
     body.classList.add("state-initial");
   }
 
+  /** Erstellt die URL zum Web-Controller (optional mit Controller-ID). */
   function getWebControllerUrl(controllerId) {
     var base = window.location.protocol + "//" + window.location.hostname + ":81";
     if (!controllerId) return base + "/controller.html";
     return base + "/controller.html?id=" + encodeURIComponent(controllerId);
   }
 
+  /** Öffnet den Web-Controller in neuem Tab und aktualisiert die Controller-Liste. */
   function openWebController() {
     window.open(getWebControllerUrl(), "_blank");
     if (window.loadAvailableControllers) {
@@ -64,6 +69,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  /** Zeigt die angegebene Hauptsektion (Lobby, Spiel, Auswertung, Highscores) an. */
   function showMainSection(sectionId) {
     document.querySelectorAll(".main-section").forEach(function (section) {
       section.classList.remove("is-active");
@@ -87,12 +93,14 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  /** Liefert die ausgewählte Fragenanzahl (Modus) aus den Pills. */
   function getSelectedCount() {
     var activePill = document.querySelector("#modePills .pill.is-active");
     if (!activePill) return 5;
     return parseInt(activePill.getAttribute("data-count"), 10) || 5;
   }
 
+  /** Parst die Kategorie-Zahlen (leicht, mittel, schwer) aus dem Anzeigetext. */
   function parseCategoryCount(text) {
     var match = (text || "").match(/\(?\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)?/);
     if (!match) return [0, 0, 0];
@@ -103,6 +111,7 @@ document.addEventListener("DOMContentLoaded", function () {
     ];
   }
 
+  /** Berechnet die verfügbare Fragenanzahl anhand ausgewählter Kategorien und Schwierigkeiten. */
   function getAvailableQuestionCount() {
     var total = 0;
     var difficultyIndex = { leicht: 0, mittel: 1, schwer: 2 };
@@ -128,6 +137,7 @@ document.addEventListener("DOMContentLoaded", function () {
     return total;
   }
 
+  /** Prüft, ob das Spiel gestartet werden kann (Fragen passen, alle Spieler bereit). */
   function canStartGame() {
     if (getAvailableQuestionCount() !== getSelectedCount() || getSelectedCount() <= 0) return false;
     var players = window.lobbyPlayers || [];
@@ -140,12 +150,14 @@ document.addEventListener("DOMContentLoaded", function () {
     return connected.every(function (p) { return !!p.ready; });
   }
 
+  /** Aktualisiert den Zustand des Spiel-starten-Buttons (aktiv/disabled). */
   function updateSpielStartenState() {
     if (!configGameBtn) return;
     configGameBtn.disabled = !canStartGame();
     configGameBtn.style.pointerEvents = configGameBtn.disabled ? "none" : "";
   }
 
+  /** Aktualisiert die Lobby-Fragenzähler und den Spiel-starten-Button. */
   function refreshLobbyQuestionCounter() {
     var available = getAvailableQuestionCount();
     var selected = getSelectedCount();
