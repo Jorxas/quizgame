@@ -2,7 +2,7 @@ package com.example;
 
 /**
  * Haupt-Verticle – startet JDBC-Pool, GameStateManager, MQTT- und HTTP-Verticles.
- * Registriert alle REST-Controller (Auth, Controllers, Lobby, Player, Game, Highscores, Object).
+ * Registriert alle REST-Controller (Auth, Controllers, Lobby, Player, Game, Highscores).
  */
 import java.util.List;
 
@@ -20,7 +20,6 @@ import com.example.game.GameStateManager;
 import com.example.http.HttpController;
 import com.example.http.HttpServerVerticle;
 import com.example.mqtt.MqttVerticle;
-import com.example.object.ObjectController;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
@@ -73,8 +72,7 @@ public class MainVerticle extends AbstractVerticle {
                 new LobbyController(vertx),
                 new PlayerController(vertx),
                 new GameController(vertx),
-                new HighscoresController(vertx),
-                new ObjectController(vertx)
+                new HighscoresController(vertx)
         );
 
         controllers.forEach(it -> it.registerRoutes(httpVerticle.router));
