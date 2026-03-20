@@ -135,5 +135,16 @@ Payload-Beispiel:
   - Hardware-Tests: iti-mqtt.mni.thm.de:1883/9001 (TLS, nur im VPN erreichbar)
   - Umschalter: Env-Variable MQTT_BROKER_HOST
 
+---
+
+## 7. Fehlerfallbehandlung – Mehrfach-Login
+
+**Entscheidung: Neuer Login wird abgelehnt.**
+
+- Ein Account darf nur einmal aktiv sein.
+- Wenn sich ein Nutzer bereits in der aktuellen Lobby-Session befindet und ein erneuter Login-Versuch erfolgt (z.B. von einem anderen Gerät oder Browser), wird der neue Login **abgelehnt** mit der Meldung: *„Du bist bereits in der Session angemeldet.“*
+- **Implementierung**: `AuthController.handleLogin()` prüft vor der erfolgreichen Anmeldung über `lobbyService.isUserInCurrentLobby(username)` ob der Nutzer bereits in der Lobby ist. Bei positivem Befund wird HTTP 409 (Conflict) mit obiger Meldung zurückgegeben.
+- RFID-Re-Scan desselben Nutzers am selben Hardware-Controller wird toleriert (Backend meldet „bereits in der Lobby“) – der Nutzer bleibt angemeldet.
+
 
 ---
