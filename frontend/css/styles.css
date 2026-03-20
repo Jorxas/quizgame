@@ -1,3 +1,9 @@
+/* ================================================================
+   Quiz-Plattform – Haupt-Stylesheet
+   Layout, Farben (CSS-Variablen), Panels, Lobby, Spiel, Auswertung, Highscores
+   ================================================================ */
+
+/* CSS-Variablen: Farbpalette, Schatten, Abstände */
 :root {
   --navy:       #1a2744;
   --navy-light: #243258;
@@ -25,6 +31,7 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* Body: Hintergrund, Schrift, dezentes Muster */
 body {
   font-family: 'DM Sans', sans-serif;
   background: var(--cream);
@@ -82,7 +89,7 @@ body {
   overflow: hidden;
 }
 
-/* Subtle texture on header */
+/* Dezente Textur auf Panel-Header */
 .panel-header::before {
   content: '';
   position: absolute; inset: 0;
@@ -90,7 +97,7 @@ body {
   pointer-events: none;
 }
 
-/* Gold accent stripe */
+/* Gold-Akzent-Streifen am unteren Rand */
 .panel-header::after {
   content: '';
   position: absolute; bottom: 0; left: 0; right: 0;
@@ -118,7 +125,7 @@ body {
   flex: 1;
 }
 
-/* ── SEGMENTED ─────────────────────────────────── */
+/* Segmented Control: Login / Registrierung / Controller Tabs */
 .segmented {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -150,7 +157,7 @@ body {
   box-shadow: var(--shadow-sm);
 }
 
-/* ── INPUTS ────────────────────────────────────── */
+/* Formularfelder und Inputs */
 .field { display: grid; gap: 5px; }
 
 .field span {
@@ -184,7 +191,7 @@ input[type="password"]:focus {
 
 input::placeholder { color: var(--text-faint); }
 
-/* ── BUTTONS ───────────────────────────────────── */
+/* Buttons: primary, ghost, small */
 .btn {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -227,14 +234,13 @@ input::placeholder { color: var(--text-faint); }
 
 .btn.small { padding: 6px 12px; font-size: 12px; }
 
-/* ── ROW / HELPERS ─────────────────────────────── */
+/* Zeilen-Layout und Hilfsklassen */
 .row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
 
 .hint, .muted { font-size: 12px; color: var(--text-soft); line-height: 1.5; }
 .form-hint { font-size: 11px; color: var(--text-soft); margin: 4px 0 8px; }
-.tiny { font-size: 11px; color: var(--text-faint); }
 
-/* ── CONTROLLER CARDS ──────────────────────────── */
+/* Controller-Karten: verfügbar, belegt, ausgewählt */
 .controller-card {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -247,12 +253,29 @@ input::placeholder { color: var(--text-faint); }
   background: var(--cream-mid);
 }
 
-.controller-card.is-available { background: #f0f8f0; border-color: rgba(40,140,70,0.2); }
-.controller-card.is-busy      { background: #fff5f5; border-color: rgba(200,60,60,0.15); }
-.controller-card.is-selected  { background: #e8f4fc; border-color: rgba(59,111,212,0.35); box-shadow: 0 0 0 2px rgba(59,111,212,0.15); }
+.controller-card.is-available { background: #fff; border-color: rgba(42,128,80,0.2); }
+.controller-card.is-busy      { background: #fff; border-color: rgba(200,60,60,0.12); opacity: 0.85; }
+.controller-card.is-selected  {
+  background: #fff;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px var(--gold-dim), var(--shadow-md);
+}
 .controller-card[role="button"] { cursor: pointer; }
-.controller-card .controller-name { font-weight: 600; color: var(--navy); }
-.controller-card .controller-id  { font-size: 12px; color: var(--text-soft); margin-left: 4px; }
+.controller-card-body { display: flex; flex-direction: column; gap: 2px; }
+.controller-card .controller-name {
+  font-family: 'Playfair Display', serif;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--navy);
+}
+.controller-card .controller-id {
+  display: block;
+  font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+  font-size: 10px;
+  color: var(--text-soft);
+  margin-top: 2px;
+  letter-spacing: 0.3px;
+}
 .controller-config-title { font-family: 'Playfair Display', serif; font-size: 14px; color: var(--navy); margin-bottom: 10px; font-weight: 700; }
 .btn-create-controller { margin-bottom: 12px; width: 100%; }
 .controller-list { margin: 8px 0; }
@@ -260,7 +283,7 @@ input::placeholder { color: var(--text-faint); }
 .tag-available { background: #e8f7ee; color: #2a8050; border: 1px solid rgba(42,128,80,0.2); }
 .tag-belegt   { background: #fef0f0; color: #c0392b; border: 1px solid rgba(192,57,43,0.2); }
 
-/* ── TAGS ──────────────────────────────────────── */
+/* Tags: ok (grün), warn (rot) für Bewertungen */
 .tag {
   font-size: 10px;
   padding: 3px 9px;
@@ -273,7 +296,7 @@ input::placeholder { color: var(--text-faint); }
 .tag.ok   { background: #e8f7ee; color: #2a8050; border: 1px solid rgba(42,128,80,0.2); }
 .tag.warn { background: #fef0f0; color: #c0392b; border: 1px solid rgba(192,57,43,0.2); }
 
-/* ── TABS ──────────────────────────────────────── */
+/* Haupt-Tabs: Lobby, Spiel, Auswertung, Web-Controller, Highscores */
 .tabs { display: flex; gap: 4px; flex-wrap: wrap; }
 
 .tab {
@@ -305,7 +328,7 @@ input::placeholder { color: var(--text-faint); }
   pointer-events: none;
 }
 
-/* ── BOTTOM NAV ────────────────────────────────── */
+/* Mobile Navigation unten */
 .bottom-nav {
   display: flex;
   justify-content: center;
@@ -316,7 +339,7 @@ input::placeholder { color: var(--text-faint); }
   flex-wrap: wrap;
 }
 
-/* ── CARDS ─────────────────────────────────────── */
+/* Karten und Grid-Layout (Lobby, Spiel-Konfiguration) */
 .grid-2 {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -349,7 +372,7 @@ input::placeholder { color: var(--text-faint); }
   margin: 14px 0 8px;
 }
 
-/* ── PILLS ─────────────────────────────────────── */
+/* Pills: Modus-Auswahl (5/10/20 Fragen), Zähler */
 .segment-row { display: flex; gap: 6px; margin: 8px 0; }
 
 .pill {
@@ -410,7 +433,7 @@ input::placeholder { color: var(--text-faint); }
   color: #207030;
 }
 
-/* ── CHECKBOXES ────────────────────────────────── */
+/* Checkboxen: Kategorien, Schwierigkeit */
 .checkbox-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -445,81 +468,116 @@ input[type="checkbox"] {
   cursor: pointer;
 }
 
-/* ── PLAYER ROW ────────────────────────────────── */
+/* Spielerzeilen – elegantes Card-Layout */
+.player-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .player-row, .result-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--border);
+  padding: 12px 16px;
+  border-bottom: none;
   font-size: 13px;
+  background: #fff;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.player-row:hover, .result-row:hover {
+  box-shadow: 0 2px 12px rgba(26,39,68,0.06);
+  border-color: rgba(26,39,68,0.1);
 }
 
 .player-row:last-child, .result-row:last-child { border-bottom: none; }
 
-.player-controller-id {
-  color: var(--text-soft);
-  font-size: 0.9em;
-  font-weight: 400;
-  margin-left: 4px;
+.player-row .player-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--navy);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-/* Status (Bereit / Nicht bereit / Offline) – forme discrète */
+.player-controller-id {
+  display: inline-block;
+  font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  color: var(--text-soft);
+  background: var(--cream-dark);
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+/* Spieler-Status – dezente, raffinierte Darstellung */
 .player-status-wrap {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
-  color: var(--text-soft);
-  font-weight: 500;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
 }
 .player-status-dot {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   flex-shrink: 0;
 }
+.player-status-wrap.is-ready {
+  color: #1e6b42;
+  background: rgba(42,128,80,0.08);
+}
 .player-status-wrap.is-ready .player-status-dot { background: #2a8050; }
-.player-status-wrap.is-ready { color: #2a8050; }
+.player-status-wrap.is-not-ready {
+  color: #a62d22;
+  background: rgba(192,57,43,0.06);
+}
 .player-status-wrap.is-not-ready .player-status-dot { background: #c0392b; }
-.player-status-wrap.is-not-ready { color: #c0392b; }
-.player-status-wrap.is-offline .player-status-dot { background: #7f8c8d; }
-.player-status-wrap.is-offline { color: #7f8c8d; }
+.player-status-wrap.is-offline {
+  color: #6b7280;
+  background: rgba(107,114,128,0.06);
+}
+.player-status-wrap.is-offline .player-status-dot { background: #9ca3af; }
 
-/* Bouton Austreten – forme pill, style sortie */
+/* Button „Austreten“ – zurückhaltend, elegant */
 .btn-leave {
-  margin-left: auto;
+  margin-left: 12px;
   flex-shrink: 0;
-  padding: 5px 14px;
-  font-size: 12px;
-  font-weight: 500;
+  padding: 6px 14px;
+  font-size: 11px;
+  font-weight: 600;
   font-family: 'DM Sans', sans-serif;
-  border-radius: 999px;
-  border: 1px solid rgba(192, 57, 43, 0.4);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(192, 57, 43, 0.25);
   background: transparent;
-  color: #c0392b;
+  color: #a62d22;
   cursor: pointer;
   transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 .btn-leave:hover:not(:disabled) {
-  background: rgba(192, 57, 43, 0.08);
-  border-color: #c0392b;
+  background: rgba(192, 57, 43, 0.06);
+  border-color: rgba(192, 57, 43, 0.4);
 }
-.btn-leave:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn-leave:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.status {
-  font-size: 10px;
-  padding: 3px 10px;
-  border-radius: 999px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: .4px;
-}
-
-.status.ok   { background: #e8f7ee; color: #2a8050; }
-.status.warn { background: #fef0f0; color: #c0392b; }
-.status.muted { background: var(--cream-dark); color: var(--text-soft); }
-
+/* Badge für Schwierigkeit (z. B. EASY, MEDIUM) */
 .badge {
   font-size: 10px;
   background: var(--gold-dim);
@@ -531,7 +589,7 @@ input[type="checkbox"] {
   border: 1px solid rgba(184,145,58,0.25);
 }
 
-/* ── GAME ──────────────────────────────────────── */
+/* Spiel-Bereich: Frage, Timer, Antwort-Buttons A–D */
 .question-header {
   display: flex;
   justify-content: space-between;
@@ -580,7 +638,7 @@ input[type="checkbox"] {
 .answers.is-locked .answer { opacity: 0.5; cursor: not-allowed; transform: none; }
 .answers .answer.is-selected { box-shadow: 0 0 0 3px rgba(26,39,68,0.25); }
 
-/* ── CONTROLLER SECTION ────────────────────────── */
+/* Web-Controller-Bereich: Header, Ready-Toggle */
 .controller-header {
   display: flex;
   justify-content: space-between;
@@ -595,7 +653,7 @@ input[type="checkbox"] {
   color: #2a8050;
 }
 
-/* ── HIGHSCORES ────────────────────────────────── */
+/* Highscores: Tabelle, Rang-Styles, Score-Tabs */
 .table {
   width: 100%;
   border-collapse: collapse;
@@ -650,27 +708,12 @@ input[type="checkbox"] {
   font-weight: 700;
 }
 
-.rank-pill {
-  display: inline-block;
-  padding: 3px 10px;
-  border-radius: 6px;
-  font-weight: 700;
-  font-size: 11px;
-  background: var(--cream-dark);
-  color: var(--text-soft);
-  text-align: center;
-}
-
-.rank-1 .rank-pill { background: #fef8ec; color: var(--gold); border: 1px solid rgba(184,145,58,0.3); }
-.rank-2 .rank-pill { background: #f5f6f8; color: #8090a8; border: 1px solid rgba(150,160,180,0.25); }
-.rank-3 .rank-pill { background: #fdf4ee; color: #b06030; border: 1px solid rgba(180,100,50,0.25); }
-
 .score-table tbody tr.rank-1 { background: var(--gold-dim); color: var(--navy); }
 .score-table tbody tr.rank-1 td { font-weight: 600; }
 .score-table tbody tr.rank-2 { background: rgba(36,50,88,0.08); color: var(--navy); }
 .score-table tbody tr.rank-3 { background: rgba(255,183,77,0.2); color: var(--navy); }
 
-/* ── SECTION VISIBILITY ────────────────────────── */
+/* Sichtbarkeit: linke/main-Sections (nur .is-active sichtbar) */
 .left-section, .main-section { display: none; }
 .left-section.is-active, .main-section.is-active { display: block; }
 
@@ -681,7 +724,7 @@ input[type="checkbox"] {
   opacity: 0.85;
 }
 
-/* ── STATE LOGIC ───────────────────────────────── */
+/* Body-Zustände: state-initial, state-controller, state-register */
 .state-initial .segmented, .state-initial .tabs { display: none; }
 .state-initial .left .panel-body { gap: 14px; }
 .state-initial .left .btn { min-width: 90px; }
@@ -699,7 +742,7 @@ input[type="checkbox"] {
 .state-initial .left .left-section[data-left-section="register"],
 .state-initial .left .left-section[data-left-section="controller"] { display: none; }
 
-/* ── ANIMATIONS ────────────────────────────────── */
+/* Animationen: fade-up, shimmer */
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -714,20 +757,13 @@ input[type="checkbox"] {
 .panel-body > *:nth-child(3) { animation-delay: .29s; }
 .panel-body > *:nth-child(4) { animation-delay: .36s; }
 
-/* ── DIVIDER ───────────────────────────────────── */
-.divider {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--border-h), transparent);
-  margin: 4px 0;
-}
-
-/* ── RESPONSIVE ────────────────────────────────── */
+/* Responsive: einspaltiges Layout ab 1100px */
 @media (max-width: 1100px) {
   .page { grid-template-columns: 1fr; }
   .grid-2 { grid-template-columns: 1fr; }
 }
 
-/* ── MESSAGES popup (validation, erreur, info) ─── */
+/* Popup-Meldungen: Erfolg, Fehler, Info */
 .app-message-overlay {
   position: fixed;
   inset: 0;
@@ -779,7 +815,7 @@ input[type="checkbox"] {
   to   { opacity: 1; transform: scale(1); }
 }
 
-/* ── COUNTDOWN OVERLAY ─────────────────────────── */
+/* Countdown-Overlay vor jeder Frage */
 .countdown-overlay {
   display: flex;
   align-items: center;
@@ -798,5 +834,6 @@ input[type="checkbox"] {
   50% { transform: scale(1.15); opacity: .8; }
 }
 
+/* Antwort-Feedback: richtig (grün) / falsch (rot) */
 .answer.is-correct { background: #2e9460 !important; color: #fff !important; border-color: #2e9460 !important; }
 .answer.is-wrong   { background: #a03030 !important; color: #fff !important; border-color: #a03030 !important; }

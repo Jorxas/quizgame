@@ -151,7 +151,7 @@ function loadAvailableControllers(preferredControllerId) {
         card.setAttribute("data-controller-type", type);
         card.setAttribute("role", "button");
         card.setAttribute("tabindex", "0");
-        card.innerHTML = "<div><span class=\"controller-name\">" + type + "-Controller</span><span class=\"controller-id\">" + id + "</span></div><span class=\"tag tag-available\">Verfügbar</span>";
+        card.innerHTML = "<div class=\"controller-card-body\"><span class=\"controller-name\">" + type + "-Controller</span><span class=\"controller-id\">" + id + "</span></div><span class=\"tag tag-available\">Verfügbar</span>";
         list.appendChild(card);
       });
     })
