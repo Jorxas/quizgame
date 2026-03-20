@@ -64,20 +64,6 @@ public class MqttController {
 
     /* EVENTS empfangen und verarbeiten */
     public void registerEventBusConsumers() {
-        this.eventBus.consumer("game.start", msg -> {
-            logger.info("Message received via EventBus: 'game.start'");
-            mqttService.publishGameStart();
-        });
-
-        this.eventBus.consumer("game.stop", msg -> {
-            logger.info("Message received via EventBus: 'game.stop'");
-            mqttService.publishGameStop();
-        });
-
-        this.eventBus.consumer("object.created", msg -> {
-            logger.info("Message received via EventBus: 'object.created'");
-            mqttService.publishObjectCreated(msg.body().toString());
-        });
         this.eventBus.consumer("mqtt.demo.message", msg -> {
             logger.info("Message received via EventBus: 'mqtt.message'");
             mqttService.publishDemoMessage(msg.body().toString());

@@ -286,29 +286,10 @@ function loadHighscores(mode) {
     });
 }
 
-function createWebController(callback) {
-  fetch("/api/controllers/create-web", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" }
-  })
-    .then(function (response) {
-      if (!response.ok) return response.text().then(function (text) { throw new Error(text || "Web-Controller konnte nicht erstellt werden."); });
-      return response.json();
-    })
-    .then(function (data) {
-      if (callback) callback(true, data);
-    })
-    .catch(function (error) {
-      console.error("Error:", error);
-      if (callback) callback(false, error.message);
-    });
-}
-
 window.applyLobbyPlayersData = applyLobbyPlayersData;
 window.loadAvailableControllers = loadAvailableControllers;
 window.loadLobbyPlayers = loadLobbyPlayers;
 window.loadHighscores = loadHighscores;
-window.createWebController = createWebController;
 
 // --- Login ---
 document.getElementById("loginBtn").addEventListener("click", function (event) {
@@ -505,7 +486,6 @@ document.getElementById("refreshLobby").addEventListener("click", function () {
 // --- Spiel-Konfiguration und Start ---
 document.getElementById("configGameBtnWrap").addEventListener("click", function () {
   var config = readGameConfig();
-  var feedbackEl = document.getElementById("configGameError");
   var button = document.getElementById("configGameBtn");
 
   showInlineMessage("configGameError", "", false);
