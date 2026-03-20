@@ -1,5 +1,8 @@
 package com.example.mqtt;
 
+/**
+ * MQTT-Controller – Subscriptions: controller/+/register, pong, ready; lobby.updated, game.state.
+ */
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,7 +28,7 @@ public class MqttController {
     private static final Logger logger = LoggerFactory.getLogger(MqttController.class);
     private static final int PING_INTERVAL_MS = 10_000;
     private static final int MISSED_PINGS_DISCONNECT = 2;
-    private static final int PRE_QUESTION_PING_TIMEOUT_MS = 3_000;
+    private static final int PRE_QUESTION_PING_TIMEOUT_MS = 0;  /* Kein Warten vor Frage – Countdown reicht */
 
     private final MqttService mqttService;
     private final MqttClient mqttClient;
@@ -132,22 +135,28 @@ public class MqttController {
                 for (String cid : controllerIds) {
                     mqttService.publishPing(cid);
                 }
-                logger.info("Pre-question-ping: sent to {} controllers, waiting 3s", controllerIds.size());
-                vertx.setTimer(PRE_QUESTION_PING_TIMEOUT_MS, timerId -> {
-                    Set<String> noResponse = new java.util.HashSet<>(preQuestionWaitingControllers);
+                if (PRE_QUESTION_PING_TIMEOUT_MS <= 0) {
                     preQuestionWaitingControllers.clear();
-                    for (String cid : noResponse) {
-                        controllersRepository.updateStatus(cid, "OFFLINE", statusAr -> {
-                            if (statusAr.succeeded()) {
-                                logger.info("Pre-question-ping: controller {} no response, marked OFFLINE", cid);
-                            }
-                        });
-                    }
-                    if (!noResponse.isEmpty()) {
-                        eventBus.publish("lobby.updated", "");
-                    }
+                    logger.info("Pre-question-ping: sent to {} controllers (no wait)", controllerIds.size());
                     eventBus.publish("game.pre_question_ping.done", String.valueOf(sessionId));
-                });
+                } else {
+                    logger.info("Pre-question-ping: sent to {} controllers, waiting {}ms", controllerIds.size(), PRE_QUESTION_PING_TIMEOUT_MS);
+                    vertx.setTimer(PRE_QUESTION_PING_TIMEOUT_MS, timerId -> {
+                        Set<String> noResponse = new java.util.HashSet<>(preQuestionWaitingControllers);
+                        preQuestionWaitingControllers.clear();
+                        for (String cid : noResponse) {
+                            controllersRepository.updateStatus(cid, "OFFLINE", statusAr -> {
+                                if (statusAr.succeeded()) {
+                                    logger.info("Pre-question-ping: controller {} no response, marked OFFLINE", cid);
+                                }
+                            });
+                        }
+                        if (!noResponse.isEmpty()) {
+                            eventBus.publish("lobby.updated", "");
+                        }
+                        eventBus.publish("game.pre_question_ping.done", String.valueOf(sessionId));
+                    });
+                }
             });
         });
 
