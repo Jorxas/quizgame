@@ -1,4 +1,4 @@
-/* Web-Controller — design séparé (navy, cream, Playfair, DM Sans) */
+/* Web-Controller – Stylesheet (Farben: navy, cream, Playfair, DM Sans) */
 
 :root {
   --navy:        #1a2744;
@@ -189,6 +189,12 @@ body::before {
   box-shadow: 0 0 6px rgba(138,151,170,0.4);
 }
 .player-status.not-ready .status-text { color: var(--text-soft); }
+
+.player-status.is-playing .status-dot {
+  background: var(--blue-acc);
+  box-shadow: 0 0 6px rgba(59,111,212,0.5);
+}
+.player-status.is-playing .status-text { color: var(--blue-acc); }
 
 /* ── ANSWER BUTTONS ────────────────────────────── */
 .answer-grid {
