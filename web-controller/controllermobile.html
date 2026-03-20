@@ -1,4 +1,8 @@
 <!doctype html>
+<!--
+  Web-Controller Mobile – responsive Ansicht für Smartphones/Tablets
+  Gleiche Funktionalität wie controller.html, angepasstes Layout
+-->
 <html lang="de">
   <head>
     <meta charset="utf-8" />
@@ -6,7 +10,7 @@
     <title>Web-Controller Mobile</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
     <style>
-/* Web-Controller — design fusionné (navy, cream, Playfair, DM Sans) */
+/* Web-Controller Mobile – eingebettete Styles (navy, cream, Playfair, DM Sans) */
 :root {
   --navy:        #1a2744;
   --navy-light:  #243258;
@@ -169,6 +173,11 @@ body::before {
   box-shadow: 0 0 6px rgba(138,151,170,0.4);
 }
 .player-status.not-ready .status-text { color: var(--text-soft); }
+.player-status.is-playing .status-dot {
+  background: var(--blue-acc);
+  box-shadow: 0 0 6px rgba(59,111,212,0.5);
+}
+.player-status.is-playing .status-text { color: var(--blue-acc); }
 .answer-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -429,13 +438,19 @@ window.__ENV__ = {
 
   function setReadyUi(ready) {
     currentReady = !!ready;
-    if (controllerStatusText) controllerStatusText.textContent = currentReady ? "Ready" : "Not ready";
-    if (controllerStatusBox) {
-      controllerStatusBox.classList.toggle("ready", currentReady);
-      controllerStatusBox.classList.toggle("not-ready", !currentReady);
-    }
+    updateStatusDisplay();
     if (readyButton) readyButton.classList.toggle("is-selected", currentReady);
     if (notReadyButton) notReadyButton.classList.toggle("is-selected", !currentReady);
+  }
+  function updateStatusDisplay() {
+    var isPlaying = gameState === "COUNTDOWN" || gameState === "QUESTION" || gameState === "EVALUATION";
+    var text = isPlaying ? "Playing" : (currentReady ? "Ready" : "Not ready");
+    if (controllerStatusText) controllerStatusText.textContent = text;
+    if (controllerStatusBox) {
+      controllerStatusBox.classList.toggle("ready", !isPlaying && currentReady);
+      controllerStatusBox.classList.toggle("not-ready", !isPlaying && !currentReady);
+      controllerStatusBox.classList.toggle("is-playing", isPlaying);
+    }
   }
 
   function setPlayerUi(playerId, ready) {
@@ -586,13 +601,10 @@ window.__ENV__ = {
       }
       try { var data = JSON.parse(msg); } catch (e) { return; }
       if (topic === prefix + "game/state") {
-        if (data.state === "COUNTDOWN") {
-          gameState = "LOBBY";
-        } else {
-          gameState = data.state;
-          if (data.state === "EVALUATION") showEvaluation();
-          else if (data.state === "ENDED") showEnded(data);
-        }
+        gameState = data.state || "LOBBY";
+        updateStatusDisplay();
+        if (data.state === "EVALUATION") showEvaluation();
+        else if (data.state === "ENDED") showEnded(data);
       } else if (topic === prefix + "game/countdown") { /* Controller zeigt keinen Countdown */ }
       else if (topic === prefix + "game/question") showQuestion(data);
       else if (topic === prefix + "game/ended") showEnded(data);

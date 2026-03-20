@@ -1,6 +1,6 @@
 /**
- * Web-Controller — Controller-ID aus URL (?id=WEB-xxx).
- * MQTT-Topics: register, ping/pong, ready, game events, answers.
+ * Web-Controller – Controller-ID aus URL-Parameter (?id=WEB-xxx).
+ * MQTT: register, ping/pong, ready, Spiel-Events, Antworten.
  */
 
 (function () {
@@ -41,13 +41,21 @@
   /** Aktualisiert die Ready/Not-ready-Anzeige in der UI. */
   function setReadyUi(ready) {
     currentReady = !!ready;
-    if (controllerStatusText) controllerStatusText.textContent = currentReady ? "Ready" : "Not ready";
-    if (controllerStatusBox) {
-      controllerStatusBox.classList.toggle("ready", currentReady);
-      controllerStatusBox.classList.toggle("not-ready", !currentReady);
-    }
+    updateStatusDisplay();
     if (readyButton) readyButton.classList.toggle("is-selected", currentReady);
     if (notReadyButton) notReadyButton.classList.toggle("is-selected", !currentReady);
+  }
+
+  /** Zeigt Status an: „Playing“ während des Spiels, sonst Ready/Not ready. */
+  function updateStatusDisplay() {
+    var isPlaying = gameState === "COUNTDOWN" || gameState === "QUESTION" || gameState === "EVALUATION";
+    var text = isPlaying ? "Playing" : (currentReady ? "Ready" : "Not ready");
+    if (controllerStatusText) controllerStatusText.textContent = text;
+    if (controllerStatusBox) {
+      controllerStatusBox.classList.toggle("ready", !isPlaying && currentReady);
+      controllerStatusBox.classList.toggle("not-ready", !isPlaying && !currentReady);
+      controllerStatusBox.classList.toggle("is-playing", isPlaying);
+    }
   }
 
   /** Zeigt den verbundenen Spieler und dessen Bereitschaft an. */
@@ -235,13 +243,10 @@
       try { var data = JSON.parse(msg); } catch (e) { return; }
 
       if (topic === prefix + "game/state") {
-        if (data.state === "COUNTDOWN") {
-          gameState = "LOBBY";
-        } else {
-          gameState = data.state;
-          if (data.state === "EVALUATION") showEvaluation();
-          else if (data.state === "ENDED") showEnded(data);
-        }
+        gameState = data.state || "LOBBY";
+        updateStatusDisplay();
+        if (data.state === "EVALUATION") showEvaluation();
+        else if (data.state === "ENDED") showEnded(data);
       } else if (topic === prefix + "game/countdown") {
         /* Controller zeigt keinen Countdown – nur die Hauptseite */
       } else if (topic === prefix + "game/question") {
