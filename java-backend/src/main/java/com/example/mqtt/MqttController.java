@@ -1,6 +1,7 @@
 package com.example.mqtt;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
@@ -8,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import com.example.auth.AuthService;
 import com.example.controllers.ControllersRepository;
+import com.example.game.GameRepository;
 import com.example.lobby.LobbyRepository;
 import com.example.lobby.LobbyService;
 import com.example.player.PlayerService;
@@ -23,6 +25,7 @@ public class MqttController {
     private static final Logger logger = LoggerFactory.getLogger(MqttController.class);
     private static final int PING_INTERVAL_MS = 10_000;
     private static final int MISSED_PINGS_DISCONNECT = 2;
+    private static final int PRE_QUESTION_PING_TIMEOUT_MS = 3_000;
 
     private final MqttService mqttService;
     private final MqttClient mqttClient;
@@ -30,10 +33,12 @@ public class MqttController {
     private final Vertx vertx;
     private final ControllersRepository controllersRepository;
     private final LobbyRepository lobbyRepository;
+    private final GameRepository gameRepository;
     private final AuthService authService;
     private final PlayerService playerService;
     private final LobbyService lobbyService;
     private final Map<String, Integer> controllerMissedPings = new ConcurrentHashMap<>();
+    private final Set<String> preQuestionWaitingControllers = ConcurrentHashMap.newKeySet();
 
     final String mqttMessagePrefix = System.getenv("MQTT_MESSAGE_PREFIX") != null ? System.getenv("MQTT_MESSAGE_PREFIX") : "group-16/";
     private static final String CONTROLLER_REGISTER_TOPIC_PREFIX = "controller/";
@@ -51,6 +56,7 @@ public class MqttController {
         this.eventBus = vertx.eventBus();
         this.controllersRepository = new ControllersRepository();
         this.lobbyRepository = new LobbyRepository();
+        this.gameRepository = new GameRepository();
         this.authService = new AuthService();
         this.playerService = new PlayerService();
         this.lobbyService = new LobbyService();
@@ -121,6 +127,44 @@ public class MqttController {
             });
         });
 
+        this.eventBus.consumer("game.pre_question_ping", msg -> {
+            JsonObject body = msg.body() instanceof JsonObject ? (JsonObject) msg.body() : new JsonObject(msg.body().toString());
+            long sessionId = body.getLong("sessionId", 0L);
+            preQuestionWaitingControllers.clear();
+            gameRepository.fetchControllerIdsForSession(sessionId, ar -> {
+                if (ar.failed()) {
+                    logger.warn("Pre-question-ping: failed to fetch controllers: {}", ar.cause().getMessage());
+                    eventBus.publish("game.pre_question_ping.done", String.valueOf(sessionId));
+                    return;
+                }
+                java.util.List<String> controllerIds = ar.result();
+                if (controllerIds.isEmpty()) {
+                    eventBus.publish("game.pre_question_ping.done", String.valueOf(sessionId));
+                    return;
+                }
+                preQuestionWaitingControllers.addAll(controllerIds);
+                for (String cid : controllerIds) {
+                    mqttService.publishPing(cid);
+                }
+                logger.info("Pre-question-ping: sent to {} controllers, waiting 3s", controllerIds.size());
+                vertx.setTimer(PRE_QUESTION_PING_TIMEOUT_MS, timerId -> {
+                    Set<String> noResponse = new java.util.HashSet<>(preQuestionWaitingControllers);
+                    preQuestionWaitingControllers.clear();
+                    for (String cid : noResponse) {
+                        controllersRepository.updateStatus(cid, "OFFLINE", statusAr -> {
+                            if (statusAr.succeeded()) {
+                                logger.info("Pre-question-ping: controller {} no response, marked OFFLINE", cid);
+                            }
+                        });
+                    }
+                    if (!noResponse.isEmpty()) {
+                        eventBus.publish("lobby.updated", "");
+                    }
+                    eventBus.publish("game.pre_question_ping.done", String.valueOf(sessionId));
+                });
+            });
+        });
+
         this.eventBus.consumer("game.replay", msg -> {
             io.vertx.core.json.JsonArray usernames = (io.vertx.core.json.JsonArray) msg.body();
             if (usernames != null) {
@@ -154,8 +198,14 @@ public class MqttController {
                         topic.length() - CONTROLLER_REGISTER_TOPIC_SUFFIX.length()
                 );
                 if (!controllerId.isEmpty()) {
+                    String controllerType = "WEB";
+                    try {
+                        JsonObject regPayload = new JsonObject(payload.toString());
+                        String ct = regPayload.getString("controllerType");
+                        if (ct != null && !ct.isBlank()) controllerType = ct;
+                    } catch (Exception ignored) { }
                     controllerMissedPings.put(controllerId, 0);
-                    controllersRepository.createControllerIfNotExists(controllerId, ar -> {
+                    controllersRepository.createControllerIfNotExists(controllerId, controllerType, ar -> {
                         if (ar.succeeded()) {
                             logger.info("Controller register: {} (insert or update, ping started)", controllerId);
                         } else {
@@ -170,6 +220,7 @@ public class MqttController {
                 );
                 if (!controllerId.isEmpty()) {
                     controllerMissedPings.put(controllerId, 0);
+                    preQuestionWaitingControllers.remove(controllerId);
                     controllersRepository.updateLastSeen(controllerId, ar -> {
                         if (ar.succeeded()) {
                             logger.debug("Controller pong: {} (last_seen_at updated)", controllerId);
