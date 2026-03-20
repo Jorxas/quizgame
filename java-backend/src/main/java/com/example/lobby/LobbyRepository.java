@@ -1,5 +1,8 @@
 package com.example.lobby;
 
+/**
+ * Lobby-Repository – DB-Zugriff für game_session_players, Lobby-Status.
+ */
 import com.example.database.DatabaseClient;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -35,41 +38,18 @@ public class LobbyRepository {
         });
     }
 
-    /** Erstellt neue LOBBY-Session (oder ersetzt bestehende). */
+    /** Erstellt neue LOBBY-Session. Beendet zuvor alle laufenden Sessions (LOBBY, COUNTDOWN, QUESTION, EVALUATION). */
     public void createNewLobbySession(Handler<AsyncResult<Void>> resultHandler) {
-        jdbcPool.preparedQuery("SELECT id FROM game_sessions WHERE state = 'LOBBY' ORDER BY id DESC LIMIT 1")
-                .execute(Tuple.tuple(), checkAr -> {
-                    if (checkAr.failed()) {
-                        resultHandler.handle(Future.failedFuture(checkAr.cause()));
+        jdbcPool.preparedQuery("UPDATE game_sessions SET state = 'ENDED' WHERE state != 'ENDED'")
+                .execute(Tuple.tuple(), updateAr -> {
+                    if (updateAr.failed()) {
+                        resultHandler.handle(Future.failedFuture(updateAr.cause()));
                         return;
                     }
-                    boolean hasLobby = checkAr.result().iterator().hasNext();
-                    if (hasLobby) {
-                        jdbcPool.preparedQuery("UPDATE game_sessions SET state = 'ENDED' WHERE state = 'LOBBY'")
-                                .execute(Tuple.tuple(), updateAr -> {
-                                    if (updateAr.failed()) {
-                                        resultHandler.handle(Future.failedFuture(updateAr.cause()));
-                                        return;
-                                    }
-                                    jdbcPool.preparedQuery("INSERT INTO game_sessions (round_length, state) VALUES ('Q5', 'LOBBY')")
-                                            .execute(Tuple.tuple(), insAr -> {
-                                                resultHandler.handle(insAr.succeeded() ? Future.succeededFuture() : Future.failedFuture(insAr.cause()));
-                                            });
-                                });
-                    } else {
-                        jdbcPool.preparedQuery("SELECT 1 FROM game_sessions LIMIT 1")
-                                .execute(Tuple.tuple(), anyAr -> {
-                                    boolean hasAny = anyAr.succeeded() && anyAr.result().iterator().hasNext();
-                                    if (!hasAny) {
-                                        jdbcPool.preparedQuery("INSERT INTO game_sessions (round_length, state) VALUES ('Q5', 'LOBBY')")
-                                                .execute(Tuple.tuple(), insAr -> {
-                                                    resultHandler.handle(insAr.succeeded() ? Future.succeededFuture() : Future.failedFuture(insAr.cause()));
-                                                });
-                                    } else {
-                                        resultHandler.handle(Future.succeededFuture());
-                                    }
-                                });
-                    }
+                    jdbcPool.preparedQuery("INSERT INTO game_sessions (round_length, state) VALUES ('Q5', 'LOBBY')")
+                            .execute(Tuple.tuple(), insAr -> {
+                                resultHandler.handle(insAr.succeeded() ? Future.succeededFuture() : Future.failedFuture(insAr.cause()));
+                            });
                 });
     }
 
