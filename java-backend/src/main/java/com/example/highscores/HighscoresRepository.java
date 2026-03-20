@@ -24,7 +24,7 @@ public class HighscoresRepository {
         String sql = "SELECT u.username, h.total_points AS score, h.created_at " +
                 "FROM highscores h JOIN users u ON u.id = h.user_id " +
                 "WHERE h.round_length = ? " +
-                "ORDER BY h.total_points DESC, COALESCE(h.total_response_time_ms, 999999999) ASC LIMIT ?";
+                "ORDER BY h.total_points DESC, h.created_at ASC LIMIT ?";
         jdbcPool.preparedQuery(sql).execute(Tuple.of(roundLength, limit), ar -> {
             if (ar.succeeded()) {
                 RowSet<Row> rows = ar.result();
