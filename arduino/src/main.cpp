@@ -18,6 +18,33 @@ static bool g_ready = false;
 // Last question we sent an answer for (avoid double-send per question)
 static long g_lastAnsweredQuestionId = 0;
 
+/** Countdown LEDs: 3->rot, 2->gelb, 1->gruen (ready, set, go). */
+static void handleCountdownLeds() {
+  int tick = net::wifi_mqtt::consumeCountdownTick();
+  if (tick == 3) {
+    hw::neopixel::flash(hw::neopixel::strip().Color(120, 0, 0), 90);
+    hw::neopixel::off();
+  } else if (tick == 2) {
+    hw::neopixel::flash(hw::neopixel::strip().Color(120, 120, 0), 90);
+    hw::neopixel::off();
+  } else if (tick == 1) {
+    hw::neopixel::flash(hw::neopixel::strip().Color(0, 120, 0), 90);
+    hw::neopixel::off();
+  }
+}
+
+/** Ergebnis-Feedback: korrekt=gruen, falsch=rot. */
+static void handleAnswerFeedbackLeds() {
+  bool correct = false;
+  if (!net::wifi_mqtt::consumeAnswerFeedback(&correct)) return;
+  if (correct) {
+    hw::neopixel::flash(hw::neopixel::strip().Color(0, 120, 0), 180);
+  } else {
+    hw::neopixel::flash(hw::neopixel::strip().Color(120, 0, 0), 180);
+  }
+  hw::neopixel::off();
+}
+
 /** Liest Tasten, sendet Antworten (A-D) oder Ready/Not-ready per MQTT. */
 static void handleButtons() {
   String boundUsername = net::wifi_mqtt::getBoundUsername();
@@ -174,6 +201,8 @@ void loop() {
   net::wifi_mqtt::processMqtt();
   hw::rfid::service();
   handleRfidScan();
+  handleCountdownLeds();
+  handleAnswerFeedbackLeds();
   handleButtons();
   // Refresh OLED when bound (shows name, status, score; or +X Pkt when points earned)
   static uint32_t lastOledRefresh = 0;
