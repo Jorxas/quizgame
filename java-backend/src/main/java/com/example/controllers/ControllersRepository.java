@@ -109,14 +109,16 @@ public class ControllersRepository {
     }
 
     /**
-     * Creates a controller if it does not exist (ID sent by web-controller via MQTT register).
-     * Uses INSERT ... ON DUPLICATE KEY UPDATE to set last_seen_at.
+     * Creates a controller if it does not exist (ID sent via MQTT register).
+     * controllerType: "HARDWARE" for Arduino, "WEB" for web controller.
+     * Uses INSERT ... ON DUPLICATE KEY UPDATE to set last_seen_at (type only set on insert).
      */
-    public void createControllerIfNotExists(String controllerId, Handler<AsyncResult<Void>> resultHandler) {
-        String sql = "INSERT INTO controllers (controller_id, controller_type, status) VALUES (?, 'WEB', 'FREE') " +
-                "ON DUPLICATE KEY UPDATE last_seen_at = CURRENT_TIMESTAMP";
+    public void createControllerIfNotExists(String controllerId, String controllerType, Handler<AsyncResult<Void>> resultHandler) {
+        String type = ("HARDWARE".equalsIgnoreCase(controllerType)) ? "HARDWARE" : "WEB";
+        String sql = "INSERT INTO controllers (controller_id, controller_type, status) VALUES (?, ?, 'FREE') " +
+                "ON DUPLICATE KEY UPDATE last_seen_at = CURRENT_TIMESTAMP, controller_type = VALUES(controller_type)";
         jdbcPool.preparedQuery(sql)
-                .execute(Tuple.of(controllerId), ar -> {
+                .execute(Tuple.of(controllerId, type), ar -> {
                     if (ar.succeeded()) {
                         resultHandler.handle(Future.succeededFuture());
                     } else {
