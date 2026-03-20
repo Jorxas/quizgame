@@ -102,8 +102,8 @@ public class ControllersController implements HttpController {
                         .end(ar.result().encode());
             } else {
                 String msg = ar.cause() != null ? ar.cause().getMessage() : "Controller-Status konnte nicht abgerufen werden.";
-                int statusCode = "Controller not found".equals(msg) ? 404 : 500;
-                String errorText = "Controller not found".equals(msg) ? "Controller nicht gefunden." : msg;
+                int statusCode = "Controller nicht gefunden.".equals(msg) ? 404 : 500;
+                String errorText = msg;
                 ctx.response()
                         .putHeader("content-type", "application/json")
                         .setStatusCode(statusCode)

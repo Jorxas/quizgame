@@ -39,12 +39,14 @@ public class LobbyService {
         lobbyRepository.addPlayerToLobby(username, resultHandler);
     }
 
+    /** Entfernt Spieler aus der Lobby und hebt Controller-Zuordnung auf. */
     public void removePlayerFromLobby(String username, Handler<AsyncResult<Void>> resultHandler) {
         controllersRepository.unbindControllerForUser(username, unused -> {
             lobbyRepository.removePlayerFromLobby(username, resultHandler);
         });
     }
 
+    /** Aktualisiert den Ready-Status eines Spielers in der Lobby. */
     public void updatePlayerReady(String playerId, boolean ready, Handler<AsyncResult<Void>> resultHandler) {
         lobbyRepository.updatePlayerReady(playerId, ready, resultHandler);
     }

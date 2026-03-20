@@ -9,6 +9,7 @@ namespace hw::oled {
 
 static Adafruit_SH1106 g_display(OLED_RESET_PIN);
 
+/** Initialisiert das SH1106-Display und Schriftart. */
 void begin() {
   g_display.begin(0x02, OLED_I2C_ADDRESS, OLED_RESET_PIN);
   delay(OLED_I2C_DELAY_MS);
@@ -22,6 +23,7 @@ void begin() {
   g_display.setFont(&FreeSans9pt7b);
 }
 
+/** Zeigt das THM-Logo auf dem Display. */
 void showThmLogo() {
   g_display.clearDisplay();
   delay(OLED_I2C_DELAY_MS);
@@ -38,6 +40,7 @@ void showThmLogo() {
   delay(OLED_I2C_DELAY_MS);
 }
 
+/** Zeigt „RFID-Karte nicht erkannt“. */
 void showRfidError() {
   g_display.clearDisplay();
   delay(OLED_I2C_DELAY_MS);
@@ -50,6 +53,7 @@ void showRfidError() {
   delay(OLED_I2C_DELAY_MS);
 }
 
+/** Zeigt Willkommens-Text mit Benutzernamen nach RFID-Login. */
 void showRfidWelcome(const char* username) {
   g_display.clearDisplay();
   delay(OLED_I2C_DELAY_MS);
@@ -62,6 +66,7 @@ void showRfidWelcome(const char* username) {
   delay(OLED_I2C_DELAY_MS);
 }
 
+/** Zeigt Spielername, Ready-Status und Punktzahl. */
 void showPlayerStatus(const char* username, bool ready, long score) {
   g_display.clearDisplay();
   delay(OLED_I2C_DELAY_MS);
@@ -77,6 +82,7 @@ void showPlayerStatus(const char* username, bool ready, long score) {
   delay(OLED_I2C_DELAY_MS);
 }
 
+/** Zeigt „+X Pkt“ (Punkte nach richtiger Antwort). */
 void showPlusXPoints(long points) {
   g_display.clearDisplay();
   delay(OLED_I2C_DELAY_MS);
@@ -89,6 +95,7 @@ void showPlusXPoints(long points) {
   delay(OLED_I2C_DELAY_MS);
 }
 
+/** Liefert die Display-Instanz. */
 Adafruit_SH1106& display() {
   return g_display;
 }

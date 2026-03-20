@@ -66,38 +66,41 @@
     subscribePlayerTopics();
   }
 
+  /** Abonniert die spielerspezifischen MQTT-Topics (Status, Ergebnis). */
   function subscribePlayerTopics() {
     if (!client || !currentPlayerId) return;
 
     var statusTopic = prefix + "player/" + currentPlayerId + "/status";
     if (subscribedStatusTopic !== statusTopic) {
       if (subscribedStatusTopic) client.unsubscribe(subscribedStatusTopic);
-      client.subscribe(statusTopic, { qos: 0 });
+      client.subscribe(statusTopic);
       subscribedStatusTopic = statusTopic;
     }
 
     var resultTopic = prefix + "player/" + currentPlayerId + "/result";
     if (subscribedResultTopic !== resultTopic) {
       if (subscribedResultTopic) client.unsubscribe(subscribedResultTopic);
-      client.subscribe(resultTopic, { qos: 0 });
+      client.subscribe(resultTopic);
       subscribedResultTopic = resultTopic;
     }
   }
 
+  /** Sendet den Bereitschaftsstatus (ready/not-ready) per MQTT. */
   function publishReadyState(ready) {
     if (!client || !currentPlayerId) return;
     var topic = prefix + "player/" + currentPlayerId + "/ready";
-    client.publish(topic, JSON.stringify({ action: ready ? "ready" : "not-ready", ready: ready, playerId: currentPlayerId, controllerId: controllerId, ts: Date.now() }), { qos: 0 });
+    client.publish(topic, JSON.stringify({ action: ready ? "ready" : "not-ready", ready: ready, playerId: currentPlayerId, controllerId: controllerId, ts: Date.now() }));
   }
 
   /** Sendet die gewählte Antwort (A/B/C/D) per MQTT. */
   function publishAnswer(option) {
     if (!client || !currentPlayerId || !currentQuestionId) return;
     var topic = prefix + "player/" + currentPlayerId + "/answer";
-    client.publish(topic, JSON.stringify({ questionId: currentQuestionId, selectedOption: option, playerId: currentPlayerId, controllerId: controllerId, ts: Date.now() }), { qos: 0 });
+    client.publish(topic, JSON.stringify({ questionId: currentQuestionId, selectedOption: option, playerId: currentPlayerId, controllerId: controllerId, ts: Date.now() }));
     console.log("Answer published:", option, "for question", currentQuestionId);
   }
 
+  /** Zeigt den Countdown bis zur nächsten Frage an. */
   function showCountdown(tick) {
     if (countdownOverlay) { countdownOverlay.style.display = "flex"; }
     if (countdownNumber) countdownNumber.textContent = tick;
@@ -105,6 +108,7 @@
     if (controllerAnswers) controllerAnswers.style.display = "none";
   }
 
+  /** Zeigt die aktuelle Frage mit leeren Antwort-Buttons an. */
   function showQuestion(data) {
     if (countdownOverlay) countdownOverlay.style.display = "none";
     if (resultFeedback) resultFeedback.style.display = "none";
@@ -130,6 +134,7 @@
     if (hintBox) hintBox.textContent = "Wähle deine Antwort!";
   }
 
+  /** Zeigt das Ergebnis (richtig/falsch) mit Punkten an. */
   function showResult(data) {
     if (resultFeedback) {
       resultFeedback.style.display = "flex";
@@ -145,11 +150,13 @@
     if (scoreValue) scoreValue.textContent = totalScore.toFixed(1);
   }
 
+  /** Zeigt „Auswertung läuft“ und sperrt die Antwort-Buttons. */
   function showEvaluation() {
     if (hintBox) hintBox.textContent = "Auswertung läuft...";
     if (controllerAnswers) controllerAnswers.classList.add("is-locked");
   }
 
+  /** Setzt alles zurück und zeigt das Spielende mit End-Score. */
   function showEnded(data) {
     gameState = "LOBBY";
     currentQuestionId = 0;
@@ -174,7 +181,7 @@
     if (scoreValue) scoreValue.textContent = "0";
   }
 
-  // ── MQTT Setup ──
+  /** Verbindet mit dem MQTT-Broker und registriert den Controller. */
   function connectMqtt() {
     if (!controllerId || typeof mqtt === "undefined" || !window.__ENV__) return;
     var env = window.__ENV__;
@@ -187,27 +194,26 @@
 
     client = mqtt.connect(wsUrl, {
       username: env.MQTT_USERNAME || "",
-      password: env.MQTT_PASSWORD || "",
-      reconnectPeriod: 5000
+      password: env.MQTT_PASSWORD || ""
     });
 
     client.on("connect", function () {
       console.log("MQTT connected:", wsUrl);
       var topicRegister = prefix + "controller/" + controllerId + "/register";
-      client.publish(topicRegister, JSON.stringify({ action: "register", controllerId: controllerId }), { qos: 0 });
-      client.subscribe(prefix + "controller/" + controllerId + "/ping", { qos: 0 });
-      client.subscribe(prefix + "controller/" + controllerId + "/status", { qos: 0 });
+      client.publish(topicRegister, JSON.stringify({ action: "register", controllerId: controllerId }));
+      client.subscribe(prefix + "controller/" + controllerId + "/ping");
+      client.subscribe(prefix + "controller/" + controllerId + "/status");
       setInterval(function () {
         if (client && client.connected) {
-          client.publish(prefix + "controller/" + controllerId + "/request-status", JSON.stringify({}), { qos: 0 });
+          client.publish(prefix + "controller/" + controllerId + "/request-status", JSON.stringify({}));
         }
       }, 5000);
-      client.subscribe(prefix + "game/state", { qos: 0 });
-      client.subscribe(prefix + "game/countdown", { qos: 0 });
-      client.subscribe(prefix + "game/question", { qos: 0 });
-      client.subscribe(prefix + "game/evaluation", { qos: 0 });
-      client.subscribe(prefix + "game/ended", { qos: 0 });
-      client.publish(prefix + "controller/" + controllerId + "/request-status", JSON.stringify({}), { qos: 0 });
+      client.subscribe(prefix + "game/state");
+      client.subscribe(prefix + "game/countdown");
+      client.subscribe(prefix + "game/question");
+      client.subscribe(prefix + "game/evaluation");
+      client.subscribe(prefix + "game/ended");
+      client.publish(prefix + "controller/" + controllerId + "/request-status", JSON.stringify({}));
     });
 
     client.on("message", function (topic, message) {
@@ -215,7 +221,7 @@
 
       if (topic.endsWith("/ping")) {
         var pongTopic = prefix + "controller/" + controllerId + "/pong";
-        client.publish(pongTopic, JSON.stringify({ action: "pong", controllerId: controllerId, ts: Date.now() }), { qos: 0 });
+        client.publish(pongTopic, JSON.stringify({ action: "pong", controllerId: controllerId, ts: Date.now() }));
         return;
       }
 
@@ -259,6 +265,7 @@
     client.on("error", function (e) { console.warn("MQTT error:", e); });
   }
 
+  /** Erzeugt eine zufällige Web-Controller-ID (WEB-xxxx). */
   function generateControllerId() {
     var hex = "0123456789abcdef";
     var s = "WEB-";
@@ -282,6 +289,7 @@
   }
 
   // ── Answer Handlers ──
+  /** Bindet die Klick-Handler für die Antwort-Buttons (A/B/C/D, Ready/Not ready). */
   function attachAnswerHandlers(container) {
     if (!container) return;
     container.querySelectorAll(".answer-btn").forEach(function (btn) {
@@ -311,7 +319,7 @@
   setReadyUi(false);
   attachAnswerHandlers(controllerAnswers);
 
-  /** Bei Schließen der Seite: Controller sofort als getrennt melden (sendBeacon ist zuverlässig bei unload). */
+  /** Ermittelt die API-Basis-URL (Backend). */
   function getApiBase() {
     var env = window.__ENV__ || {};
     if (env.API_BASE_URL) return env.API_BASE_URL.replace(/\/$/, "");
@@ -321,6 +329,7 @@
     return window.location.origin;
   }
 
+  /** Meldet den Controller beim Verlassen der Seite als getrennt (sendBeacon). */
   function notifyDisconnect() {
     if (!controllerId) return;
     var url = getApiBase() + "/api/controllers/disconnect";

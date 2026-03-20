@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Projekt-Prüfungsfragen – Group 16 Quiz-System</title>
+  <link rel="stylesheet" href="project-questions.css">
+</head>
+<body>
+  <header>
+    <h1>Projekt-Prüfungsfragen</h1>
+    <p class="subtitle">110 Fragen zur Überprüfung des Projektverständnisses (inkl. Arduino/Hardware)</p>
+    <p class="legend">
+      <span class="badge star-1">★ Einfach</span>
+      <span class="badge star-2">★★ Leicht</span>
+      <span class="badge star-3">★★★ Mittel</span>
+      <span class="badge star-4">★★★★ Schwer</span>
+      <span class="badge star-5">★★★★★ Sehr schwer</span>
+    </p>
+  </header>
+
+  <main>
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- ★ 1 STERNE (20 Fragen) -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <section class="difficulty-section" id="stars-1">
+      <h2>★ Einfach (20 Fragen)</h2>
+
+      <article class="question" data-stars="1">
+        <div class="question-text">1. Welche HTTP-Methode und welcher Pfad werden für die Benutzer-Registrierung verwendet?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>POST /api/auth/register</strong> – definiert in <code>AuthController.registerRoutes()</code>.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="1">
+        <div class="question-text">2. Zeige die Route für den Login.</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>POST /api/auth/login</strong> – Body: <code>{"username": "...", "password": "..."}</code></p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="1">
+        <div class="question-text">3. Mit welchem Endpoint kann man eine Lobby erstellen?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>POST /api/lobby/create</strong> – erstellt eine neue game_sessions-Zeile mit state='LOBBY'.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="1">
+        <div class="question-text">4. Welcher Endpoint liefert den Lobby-Status inklusive Spielerliste?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>GET /api/lobby/status</strong> – liefert JSON mit <code>{"players": [...]}</code></p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="1">
+        <div class="question-text">5. Wie lautet der Endpoint, um die Lobby zu verlassen (Austreten)?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>POST /api/lobby/leave</strong> – Body: <code>{"username": "..."}</code>. Beim Austritt wird der Controller freigegeben.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="1">
+        <div class="question-text">6. Nenne die Datenbank-Tabelle, in der Benutzer gespeichert werden.</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>users</strong> – mit Spalten id, username, password_hash, display_name, rfid_uid, created_at, updated_at.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="1">
+        <div class="question-text">7. Welche Backend-Technologie wird verwendet?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>Java mit Vert.x</strong> – ein reaktives Toolkit für HTTP, EventBus und MQTT-Integration.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="1">
+        <div class="question-text">8. Welche Datenbank wird verwendet?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>MariaDB</strong> – in Docker Compose integriert.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="1">
+        <div class="question-text">9. Welche möglichen Schwierigkeitsgrade gibt es bei Fragen?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>EASY, MEDIUM, HARD</strong> – ENUM in der Tabelle <code>questions</code>.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="1">
+        <div class="question-text">10. Welche Controller-Typen werden unterstützt?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>WEB</strong> und <strong>HARDWARE</strong> – in der Tabelle <code>controllers</code> (controller_type).</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="1">
+        <div class="question-text">11. Welcher Endpoint wird aufgerufen, um ein Spiel zu starten?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>POST /api/game/start</strong> – startet das Spiel, wenn alle verbundenen Spieler bereit sind.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="1">
+        <div class="question-text">12. Wo wird die Spiellogik (Rundenlänge, Kategorien, Schwierigkeiten) konfiguriert?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>POST /api/game/config</strong> – Body: mode (5/10/20), categories, difficulties.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="1">
+        <div class="question-text">13. Welche Round-Lengths sind erlaubt (Fragen pro Runde)?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>Q5, Q10, Q20</strong> – entspricht 5, 10 oder 20 Fragen pro Spiel.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="1">
+        <div class="question-text">14. Mit welchem Endpoint erstellt man einen Web-Controller?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>POST /api/controllers/create-web</strong> – erzeugt einen neuen Controller mit controller_type='WEB'.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="1">
+        <div class="question-text">15. Welcher Endpoint trennt einen Controller (Disconnect)?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>POST /api/controllers/disconnect</strong> – Body: <code>{"controllerId": "..."}</code></p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="1">
+        <div class="question-text">16. Wie heißt der MQTT-Nachrichtenbroker im Projekt?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>Mosquitto</strong> – über Docker Compose bereitgestellt.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="1">
+        <div class="question-text">17. Welche Tabelle speichert die Highscores?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>highscores</strong> – mit round_length, user_id, game_session_id, total_points, total_response_time_ms.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="1">
+        <div class="question-text">18. Welche Arduino-Platine wird im Projekt verwendet?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>Arduino Uno R4 WiFi</strong> – in <code>platformio.ini</code>: board = uno_r4_wifi, platform = renesas-ra.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="1">
+        <div class="question-text">19. In welcher Datei stehen die Pin-Belegungen (Buttons, OLED, RFID, NeoPixel)?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>arduino/include/config.h</strong> – PIN_BTN_GREEN/RED/YELLOW/BLUE (D4–D7), PIN_NEOPIXEL (D2), PIN_OLED_SDA/SCL (A4/A5), PIN_RFID_* (D9–D13).</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="1">
+        <div class="question-text">20. Wo sind die WiFi- und MQTT-Zugangsdaten hinterlegt?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>arduino/include/secrets.h</strong> – WIFI_SSID, WIFI_PASSWORD, MQTT_HOST, MQTT_PORT, MQTT_USER, MQTT_PASS, MQTT_PREFIX.</p>
+        </div>
+      </article>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- ★★ 2 STERNE (20 Fragen) -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <section class="difficulty-section" id="stars-2">
+      <h2>★★ Leicht (30 Fragen)</h2>
+
+      <article class="question" data-stars="2">
+        <div class="question-text">21. Wie werden Passwörter gespeichert (nicht im Klartext)?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>BCrypt-Hash</strong> – in der Spalte <code>password_hash</code> der Tabelle users.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="2">
+        <div class="question-text">22. Welche möglichen Zustände hat eine game_session?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>LOBBY, COUNTDOWN, QUESTION, EVALUATION, ENDED, ABORTED</strong> – state in game_sessions.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="2">
+        <div class="question-text">23. Über welchen Endpoint werden Highscores abgerufen?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>GET /api/highscores/:mode</strong> – mode ist 5, 10 oder 20 (Fragenanzahl).</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="2">
+        <div class="question-text">24. In welcher Klasse wird die Route POST /api/auth/register registriert?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>AuthController</strong> – Methode <code>registerRoutes(Router router)</code>, Handler <code>handleRegister</code>.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="2">
+        <div class="question-text">22. Beschreibe kurz: Was passiert beim Aufruf von POST /api/lobby/join?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>Der Spieler wird zur aktiven Lobby-Session hinzugefügt (game_session_players). Es muss eine Lobby im Zustand LOBBY existieren. Body: <code>{"username": "..."}</code></p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="2">
+        <div class="question-text">23. Welche Java-Klasse verwaltet die Lobby-Logik (create, join, leave)?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>LobbyService</strong> – ruft LobbyRepository und ControllersRepository (z.B. unbindControllerForUser) auf.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="2">
+        <div class="question-text">24. Wie wird der Controller beim Lobby-Austritt (Austreten) freigegeben?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>LobbyService ruft <code>ControllersRepository.unbindControllerForUser(username)</code> auf, das den Controller auf status='FREE' und assigned_user_id=NULL setzt.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="2">
+        <div class="question-text">25. Welche Tabelle verknüpft Spieler mit einer Game-Session?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>game_session_players</strong> – mit game_session_id, user_id, controller_id, is_ready, joined_at.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="2">
+        <div class="question-text">26. Wo wird geprüft, ob alle verbundenen Spieler bereit sind (Replay)?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>GameRepository.areConnectedPlayersReady(sessionId)</strong> – prüft nur Spieler, deren Controller nicht OFFLINE ist.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="2">
+        <div class="question-text">27. Welcher MQTT-Topic wird für den Spielzustand (LOBBY, QUESTION, etc.) verwendet?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>group-16/game/state</strong> – Backend publiziert, Frontend und Controller subscriben.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="2">
+        <div class="question-text">28. Wie lange dauert der Countdown vor einer Frage?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>3 Sekunden</strong> – über <code>game/countdown</code> mit tick 3, 2, 1.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="2">
+        <div class="question-text">29. Wie lange hat ein Spieler maximal Zeit, eine Frage zu beantworten?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>30 Sekunden</strong> – danach wird die Frage als nicht beantwortet gewertet (0 Punkte).</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="2">
+        <div class="question-text">30. Welche Basis-Punkte gibt es pro Schwierigkeit (EASY, MEDIUM, HARD)?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>EASY: 1.0, MEDIUM: 2.0, HARD: 3.0</strong> – in GameRepository als BASE_POINTS Map.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="2">
+        <div class="question-text">31. Über welchen Endpoint wird ein Controller an einen Spieler gebunden?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>POST /api/players/bind</strong> – Body: playerId/username und controllerId.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="2">
+        <div class="question-text">32. Welche Methode im Web-Controller sorgt für die Abmeldung beim Schließen der Seite?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>pagehide / beforeunload</strong> – sendet POST /api/controllers/disconnect per <code>navigator.sendBeacon</code> oder sync XHR.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="2">
+        <div class="question-text">33. Wie wird ein Benutzer per RFID-UID gesucht?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>GET /api/auth/rfid/:uid</strong> – oder über MQTT: auth/rfid/lookup (C→B), Backend antwortet auf controller/{mac}/rfid/reply.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="2">
+        <div class="question-text">37. Welche Arduino-Komponente wird für die RFID-Erkennung verwendet?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>RC522</strong> – SPI, Pins D9 (RST), D10 (CS), D11-D13 (MOSI, MISO, SCK).</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="2">
+        <div class="question-text">38. Welches Display wird auf dem Arduino verwendet?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>SH1106 OLED</strong> – I2C, 128×64 Pixel, SDA A4, SCL A5. Bibliothek: Adafruit_SH1106.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="2">
+        <div class="question-text">39. Wie viele Antwort-Buttons (A/B/C/D) hat der Hardware-Controller?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>4 Buttons</strong> – D4 (grün/A), D5 (rot/B), D6 (gelb/C), D7 (blau/D), active-low.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="2">
+        <div class="question-text">40. Welche Bibliotheken sind in platformio.ini für das Arduino-Projekt eingetragen?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>Adafruit NeoPixel</strong>, <strong>Adafruit GFX</strong>, <strong>MFRC522</strong> (RFID), <strong>PubSubClient</strong> (MQTT), <strong>ArduinoJson</strong>.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="2">
+        <div class="question-text">41. Was passiert in der Arduino loop() in main.cpp?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><code>net::wifi_mqtt::loop()</code> (MQTT-Verarbeitung), <code>hw::rfid::service()</code> (RFID-Karten lesen), <code>handleButtons()</code> (Tasten abfragen, NeoPixel ansteuern).</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="2">
+        <div class="question-text">42. Welche MQTT-Topics subscribt der Arduino beim Start?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><code>controller/{mac}/ping</code>, <code>controller/{mac}/status</code>, <code>game/state</code>, <code>game/question</code>, <code>game/evaluation</code>, <code>game/ended</code>. Bei Binding zusätzlich: <code>player/{id}/status</code>, <code>player/{id}/result</code>.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="2">
+        <div class="question-text">43. Was zeigt das OLED bei game/question an?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>showAnswerPrompt()</strong> – „Waehle deine Antwort!“ (Aufforderung zur Antwortauswahl).</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="2">
+        <div class="question-text">44. Was macht der gelbe Button (PIN_BTN_YELLOW) im handleButtons?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>Ruft <code>net::wifi_mqtt::publishMacAddress()</code> auf – publiziert die MAC-Adresse auf MQTT_TOPIC_MAC (<code>test/arduino/mac</code>).</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="2">
+        <div class="question-text">45. Wie viele NeoPixel-LEDs hat der Hardware-Controller?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>4 LEDs</strong> – in <code>config.h</code>: NEOPIXEL_LED_COUNT = 4, Pin D2.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="2">
+        <div class="question-text">46. Welche Bildschirmanzeigen (OLED) bietet der Hardware-Controller?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>In <code>hw::oled</code>: <strong>showThmLogo</strong> (Start), <strong>showControllerInfo</strong> (ID, Spieler, Ready, Score), <strong>showAnswerPrompt</strong> („Waehle deine Antwort!“), <strong>showResult</strong> (richtig/falsch + Punkte), <strong>showEvaluation</strong> („Auswertung laeuft…“), <strong>showEnded</strong> (Spiel beendet + Score).</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="2">
+        <div class="question-text">47. Welche Tabelle speichert die Antworten der Spieler?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>game_answers</strong> – mit game_session_id, user_id, question_id, answered_option, response_time_ms, time_bucket, is_correct, points_awarded.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="2">
+        <div class="question-text">48. Was ist der MQTT-Topic-Präfix im Projekt?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>group-16/</strong> – konfigurierbar über Umgebungsvariable MQTT_MESSAGE_PREFIX.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="2">
+        <div class="question-text">49. Welche EventBus-Adresse wird für Lobby-Updates verwendet?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>lobby.updated</strong> – wird publiziert, wenn Lobby sich ändert (Join, Leave, Controller-Status).</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="2">
+        <div class="question-text">50. Wo liegen die Frontend-Dateien (HTML, CSS, JS)?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>frontend/</strong> – index.html, css/styles.css, js/app.js, js/http/app_http.js, js/mqtt/app_mqtt.js.</p>
+        </div>
+      </article>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- ★★★ 3 STERNE (20 Fragen, Nr. 51–70) -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <section class="difficulty-section" id="stars-3">
+      <h2>★★★ Mittel (20 Fragen)</h2>
+
+      <article class="question" data-stars="3">
+        <div class="question-text">51. Erkläre den Ablauf von der Lobby bis zur ersten Frage (inkl. COUNTDOWN).</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>1) Lobby: Spieler joinen, Controller binden, bereit setzen. 2) Host konfiguriert Spiel (POST /api/game/config). 3) Host startet (POST /api/game/start), wenn alle verbundenen Spieler ready. 4) Backend setzt state=COUNTDOWN, publiziert game/state. 5) 3s Countdown (game/countdown: 3,2,1). 6) state=QUESTION, Backend publiziert game/question mit Text und Optionen (ohne correctOption).</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="3">
+        <div class="question-text">52. Wie wird erkannt, dass ein Controller offline ist?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>Backend sendet Ping über controller/{id}/ping. Controller antwortet mit pong auf controller/{id}/pong. Bei 2 verpassten Pings (MISSED_PINGS_DISCONNECT) wird status=OFFLINE gesetzt. Ping-Intervall ca. 10s.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="3">
+        <div class="question-text">53. Wann endet eine Frage vorzeitig (ohne 30s abzuwarten)?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>Wenn <strong>alle verbundenen Spieler</strong> geantwortet haben. GameStateManager nutzt <code>countConnectedPlayersInSession</code> und vergleicht mit der Anzahl der Antworten.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="3">
+        <div class="question-text">54. Wie funktioniert die Punkteberechnung (Zeitfaktor)?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>Base-Punkte × Zeitfaktor. Zeitfaktor: &lt;5s=1.0, 5–10s=0.9, 10–15s=0.8, 15–20s=0.7, 20–25s=0.6, 25–30s=0.5, &gt;30s=0.0. Falsche Antwort = 0 Punkte.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="3">
+        <div class="question-text">55. Erkläre den Replay-Ablauf: Was passiert beim Zurück-zur-Lobby nach dem Spiel?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>GameRepository.resetSessionToLobbyForReplay: 1) game_answers löschen, 2) game_session_questions löschen, 3) game_session_players.is_ready=0, 4) game_sessions.state=LOBBY. EventBus game.replay sendet ready=false an alle Spieler. Spieler bleiben in der Session, müssen erneut bereit klicken.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="3">
+        <div class="question-text">56. Welche MQTT-Topics subscribt der Web-Controller beim Start?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>controller/{id}/ping, controller/{id}/status, game/state, game/question, game/evaluation, game/ended, game/countdown. Bei Binding zusätzlich: player/{id}/status, player/{id}/result.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="3">
+        <div class="question-text">57. Über welchen MQTT-Topic sendet der Controller seine Antwort?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>player/{playerId}/answer</strong> – Payload: { questionId, selectedOption, playerId, controllerId }.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="3">
+        <div class="question-text">58. Warum wird die correctOption nicht im game/question-MQTT-Paket mitgeschickt?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>Aus <strong>Sicherheitsgründen</strong> – der Client darf die richtige Antwort erst nach Ablauf der Antwortzeit (EVALUATION) erfahren, um Betrug zu verhindern.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="3">
+        <div class="question-text">59. Welche Rolle hat der GameStateManager?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>Orchestriert den Spielablauf: reagiert auf EventBus (game.answer, game.cancel_countdown, game.replay), verwaltet Timer (Countdown, Frage 30s, Evaluation 3s), prüft ob alle verbundenen Spieler geantwortet haben, publiziert MQTT-Nachrichten und aktualisiert die DB.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="3">
+        <div class="question-text">60. Was passiert, wenn ein Spieler offline geht, während die Lobby läuft?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>Nach 2 verpassten Pings: Controller status=OFFLINE. Spieler bleibt in game_session_players, erscheint im Frontend als "Offline". Spiel kann trotzdem gestartet werden, wenn alle <strong>verbundenen</strong> Spieler ready sind (areConnectedPlayersReady).</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="3">
+        <div class="question-text">61. Welche Schicht ist zwischen AuthController und AuthRepository?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>AuthService</strong> – Controller ruft Service auf, Service ruft Repository. Typische 3-Schichten-Architektur.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="3">
+        <div class="question-text">62. Wo werden die Fragen für eine Session zufällig ausgewählt?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>GameRepository.fetchRandomQuestions</strong> – wählt basierend auf game_session_categories und allow_easy/medium/hard aus, ORDER BY RAND() LIMIT ?.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="3">
+        <div class="question-text">63. Was ist der Unterschied zwischen game_answers und game_session_results?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>game_answers</strong>: einzelne Antworten pro Frage. <strong>game_session_results</strong>: aggregierte Ergebnisse pro Spieler (total_points, correct_count, answered_count) – wird aus game_answers berechnet (computeSessionResults).</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="3">
+        <div class="question-text">64. Erkläre den Ablauf der RFID-Login-Idee (MQTT-basiert).</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>1) Arduino liest RFID-UID. 2) Arduino publiziert auth/rfid/lookup mit { uid, mac }. 3) Backend (MqttController) empfängt, ruft AuthService auf, sucht User by rfid_uid. 4) Backend publiziert auf controller/{mac}/rfid/reply mit { username }. 5) Arduino zeigt Benutzername an. (Hinweis: Arduino-Publish zu auth/rfid/lookup ist im Code evtl. noch nicht vollständig implementiert.)</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="3">
+        <div class="question-text">65. Welche Docker-Container sind im Projekt definiert?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>MariaDB, Mosquitto (MQTT), Java-Backend (Vert.x), nginx (Frontend/Reverse-Proxy), evtl. phpMyAdmin – siehe docker-compose.yml.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="3">
+        <div class="question-text">66. Wie unterscheidet sich das Frontend (Host-View) vom Web-Controller (Spieler-View)?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>Frontend</strong>: Host-Ansicht, zeigt Lobby, Spielkonfiguration, Fragen, Auswertung, Highscores. <strong>Web-Controller</strong>: Spieler-Ansicht, nur A/B/C/D-Buttons, Ready-Toggle, Score. Läuft auf anderem Port (z.B. 81).</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="3">
+        <div class="question-text">67. Wo wird verhindert, dass ein Spieler zweimal auf dieselbe Frage antwortet?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>In <strong>GameRepository.saveAnswer</strong> – INSERT in game_answers. Bei Duplicate-Key (PRIMARY/UNIQUE) wird stattdessen ein Ergebnis mit duplicate=true zurückgegeben, Punkte werden nicht erneut gutgeschrieben.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="3">
+        <div class="question-text">68. Was passiert beim POST /api/controllers/disconnect genau?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>ControllersService.disconnectController: 1) ControllersRepository.disconnectController setzt status=OFFLINE, assigned_user_id=NULL. 2) LobbyService entfernt Spieler aus Lobby (falls in Session). 3) EventBus publish lobby.updated.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="3">
+        <div class="question-text">69. Welche EventBus-Adressen nutzt der GameStateManager?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>Consumer: game.answer, game.cancel_countdown, game.replay. Publisher: game.state, game.question, game.evaluation, game.ended, game.countdown – sowie Aufrufe an MqttService zum Publizieren auf MQTT.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="3">
+        <div class="question-text">70. Warum verwendet das Frontend MQTT statt HTTP-Polling für den Spielablauf?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>Echtzeit</strong> – MQTT push-basiert: sofortige Updates (Fragen, Countdown, Auswertung) ohne Verzögerung. Polling wäre verzögert und belastender für Server und Netzwerk.</p>
+        </div>
+      </article>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- ★★★★ 4 STERNE (20 Fragen) -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <section class="difficulty-section" id="stars-4">
+      <h2>★★★★ Schwer (20 Fragen)</h2>
+
+      <article class="question" data-stars="4">
+        <div class="question-text">71. Zeige die SQL-Abfrage (oder beschreibe sie), mit der geprüft wird, ob alle verbundenen Spieler bereit sind.</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>SELECT COUNT(*) AS connected_total, SUM(CASE WHEN gsp.is_ready=1 THEN 1 ELSE 0 END) AS connected_ready FROM game_session_players gsp JOIN controllers c ON c.id=gsp.controller_id WHERE gsp.game_session_id=? AND c.status!='OFFLINE'. Ergebnis: ready wenn connected_total&gt;0 und connected_ready==connected_total.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="4">
+        <div class="question-text">72. Wie wird sichergestellt, dass Offline-Spieler in der Auswertung mit 0 Punkten erscheinen?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>computeSessionResults</strong> basiert auf game_session_players (alle Spieler in der Session), nicht nur auf game_answers. LEFT JOIN game_answers – Spieler ohne Antworten bekommen COALESCE(SUM(ga.points_awarded),0)=0.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="4">
+        <div class="question-text">73. Welche Zeile in welcher Datei setzt den controller status auf OFFLINE beim Disconnect?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>ControllersRepository.disconnectController: <code>UPDATE controllers SET status = 'OFFLINE', assigned_user_id = NULL WHERE controller_id = ?</code></p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="4">
+        <div class="question-text">74. Erkläre den Unterschied zwischen areAllPlayersReady und areConnectedPlayersReady.</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>areAllPlayersReady</strong>: alle Spieler in game_session_players müssen is_ready=1 haben. <strong>areConnectedPlayersReady</strong>: nur Spieler mit Controller status!='OFFLINE' müssen ready sein. Wichtig für Replay, wenn Offline-Spieler noch in der Session sind.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="4">
+        <div class="question-text">75. Wo wird die correct_option in game/question absichtlich ausgelassen (Code-Stelle)?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>In GameStateManager oder MqttService – beim Bauen der MQTT-Payload für game/question wird das Feld correctOption weggelassen, damit der Client es nicht vor der Auswertung sieht.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="4">
+        <div class="question-text">76. Wie funktioniert das Controller-Binding per RFID (Schritt für Schritt)?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>1) User hat rfid_uid in users. 2) Hardware-Controller (MAC) wird erkannt. 3) User hält RFID-Karte an Leser. 4) Arduino liest UID, publiziert auth/rfid/lookup. 5) Backend findet User, ermittelt passenden Controller. 6) POST /api/players/bind (oder MQTT) bindet Controller an User. Alternativ: manuelles Binding über Frontend ohne RFID.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="4">
+        <div class="question-text">77. Was passiert, wenn der Countdown läuft und ein Spieler auf "Nicht bereit" klickt?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>EventBus <code>game.cancel_countdown</code> wird publiziert. GameStateManager bricht den Countdown ab, setzt state zurück auf LOBBY, publiziert game/state. Spiel startet nicht.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="4">
+        <div class="question-text">78. Welche Tabelle speichert die Verknüpfung Session–Kategorien?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>game_session_categories</strong> – game_session_id, category_id. Ersetzt bei Config-Update (replaceSessionCategories: DELETE alt, INSERT neu).</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="4">
+        <div class="question-text">79. In welcher Reihenfolge werden die Init-SQL-Skripte ausgeführt?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>Alphabetisch: 00-init.sql (Schema), 01-seed-categories, 02–11 seed-questions, 12-seed-users, 13-seed-game-data, 14–16 weitere Seeds, 99-set-diana-not-ready. MariaDB-Container mountet das Verzeichnis und führt Skripte in Reihenfolge aus.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="4">
+        <div class="question-text">80. Warum wird navigator.sendBeacon für den Disconnect verwendet?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>Zuverlässigkeit beim Seitenwechsel</strong> – sendBeacon garantiert, dass die Anfrage noch gesendet wird, selbst wenn die Seite gerade entladen wird. Normale fetch/XHR können dabei abgebrochen werden.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="4">
+        <div class="question-text">81. Welche Foreign Keys verweisen auf die Tabelle users?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>controllers.assigned_user_id, game_sessions.host_user_id, game_session_players.user_id, game_answers.user_id, game_session_results.user_id, highscores.user_id.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="4">
+        <div class="question-text">82. Erkläre die Zeit-Buckets (T0_5, T5_10, …) in der Datenbank.</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>scoring_time_buckets: bucket_code, min_ms, max_ms, factor. T0_5: 0–5s, Faktor 1.0; T5_10: 0.9; … T30P: &gt;30s, Faktor 0.0. Wird in GameRepository für Punkteberechnung verwendet (getTimeBucket, getTimeFactor).</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="4">
+        <div class="question-text">83. Wo wird der Ping-Timer für Controller-Heartbeats gestartet?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>Im MqttController bzw. MqttService – periodischer Vert.x-Timer, der controller/{id}/ping publiziert. Bei Empfang von pong wird last_seen_at aktualisiert. Bei Timeout (2 verpasste Pings) → status=OFFLINE, lobby.updated.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="4">
+        <div class="question-text">84. Wie unterscheiden sich game_session_questions und questions?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>questions</strong>: Katalog aller Fragen (id, category_id, difficulty, question_text, correct_option, …). <strong>game_session_questions</strong>: Zuordnung welche Fragen in welcher Session gefragt werden (game_session_id, question_index, question_id, asked_at).</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="4">
+        <div class="question-text">85. Was macht unbindControllerForUser in ControllersRepository?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>UPDATE controllers SET status='FREE', assigned_user_id=NULL WHERE assigned_user_id=(SELECT id FROM users WHERE username=? LIMIT 1). Hebt die Spielerzuordnung auf – wird beim Lobby-Austritt (Austreten) aufgerufen.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="4">
+        <div class="question-text">86. Welche Bedingung muss erfüllt sein, damit POST /api/game/start erfolgreich ist?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>1) Lobby-Session existiert (state=LOBBY). 2) areConnectedPlayersReady(sessionId) == true: Mindestens ein verbundener Spieler, alle verbundenen Spieler haben is_ready=1.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="4">
+        <div class="question-text">87. Wo wird der state der game_session auf COUNTDOWN gesetzt?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>GameRepository.updateSessionState(sessionId, "COUNTDOWN", …) – aufgerufen von GameService.startGame nach erfolgreicher Ready-Prüfung.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="4">
+        <div class="question-text">88. Erkläre den Ablauf, wenn ein Spieler eine Frage beantwortet (von MQTT bis DB).</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>1) Controller publiziert player/{id}/answer. 2) MqttController empfängt, publiziert game.answer auf EventBus. 3) GameStateManager verarbeitet, ruft GameRepository.saveAnswer auf. 4) saveAnswer: Frage laden, Korrektheit prüfen, Punkte berechnen, INSERT in game_answers. 5) GameStateManager prüft ob alle verbunden geantwortet haben → evtl. frühes Ende der Frage.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="4">
+        <div class="question-text">89. Was passiert mit game_session_results beim Replay?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>computeSessionResults wird bei ENDED aufgerufen und schreibt/aktualisiert game_session_results. Beim Replay: game_answers wird gelöscht, aber game_session_results bleibt zunächst. Beim nächsten computeSessionResults (nach neuem Spielende) werden die Werte überschrieben (ON DUPLICATE KEY UPDATE).</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="4">
+        <div class="question-text">90. Welche Rolle hat MainVerticle beim Start der Anwendung?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>Haupteinstiegspunkt: deployed HttpServerVerticle, MqttVerticle, GameStateManager. Registriert alle HTTP-Controller (Auth, Lobby, Game, Controllers, Player, Highscores, Object). Stellt Router und EventBus-Verbindungen bereit.</p>
+        </div>
+      </article>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- ★★★★★ 5 STERNE (20 Fragen) -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <section class="difficulty-section" id="stars-5">
+      <h2>★★★★★ Sehr schwer (20 Fragen)</h2>
+
+      <article class="question" data-stars="5">
+        <div class="question-text">91. Skizziere die gesamte Architektur (Komponenten, Kommunikation) des Projekts.</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>Frontend (Browser) ↔ nginx ↔ Java Vert.x (HTTP). Vert.x ↔ MariaDB (JDBC). Vert.x ↔ Mosquitto (MQTT). Web-Controller ↔ MQTT + HTTP (disconnect). Arduino ↔ MQTT. EventBus verbindet: HttpController → Service → Repository; MqttController → EventBus; GameStateManager ↔ MQTT/DB. Kein direkter Frontend–DB; alles über Backend.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="5">
+        <div class="question-text">92. Welche Race Conditions könnten beim gleichzeitigen Ready-Setzen mehrerer Spieler auftreten?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>Zwei Spieler klicken gleichzeitig Ready → beide UPDATEs auf game_session_players. Wenn Start-Check zwischen den Updates läuft, könnte ein Spieler fälschlich als nicht ready gelten. Durch sequentielle DB-Updates und Single-Threaded EventLoop von Vert.x wird das minimiert; dennoch sollte die Ready-Prüfung atomar sein (eine Abfrage).</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="5">
+        <div class="question-text">93. Wie würde man eine neue Schwierigkeitsstufe (z.B. EXPERT) hinzufügen?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>1) DB: ALTER TABLE questions MODIFY difficulty ENUM(...,'EXPERT'). 2) game_sessions: allow_expert Spalte. 3) GameRepository: BASE_POINTS, fetchRandomQuestions, updateSessionConfig. 4) Frontend: Checkbox/Konfiguration. 5) ALLOWED_MODES ggf. erweitern.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="5">
+        <div class="question-text">94. Warum könnte ein Spieler "Nicht bereit" anzeigen, obwohl er ready geklickt hat?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>1) MQTT-Nachricht nicht angekommen. 2) Backend hat Lobby-Update nicht korrekt publiziert. 3) Frontend nutzt veraltete Daten (Cache). 4) Controller-Status OFFLINE → Frontend zeigt "Offline" statt Bereit. 5) game_session_players.is_ready wurde beim Replay auf 0 gesetzt.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="5">
+        <div class="question-text">95. Beschreibe einen vollständigen Testablauf: Registrierung bis zum Ende einer Runde.</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>1) POST /api/auth/register. 2) POST /api/auth/login. 3) POST /api/lobby/create. 4) POST /api/lobby/join (2–3 Spieler). 5) POST /api/controllers/create-web, POST /api/players/bind. 6) MQTT: player/{id}/ready. 7) POST /api/game/config. 8) POST /api/game/start. 9) MQTT: game/state COUNTDOWN→QUESTION. 10) MQTT: player/answer. 11) MQTT: game/evaluation, game/state. 12) Nach allen Fragen: game/ended, Highscores gespeichert.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="5">
+        <div class="question-text">96. Wie würde man das Projekt um einen "Pause"-Zustand erweitern?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>1) game_sessions.state: PAUSED hinzufügen. 2) Neuer Endpoint oder MQTT: game/pause. 3) GameStateManager: Bei PAUSED Timer stoppen, state speichern. 4) game/resume: Timer fortsetzen. 5) Frontend: Pause-Button für Host, Anzeige "Pausiert" für alle.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="5">
+        <div class="question-text">97. Welche Fehlerbehandlung fehlt oder wäre zu verbessern?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>Beispiele: Keine Retry-Logik bei MQTT-Disconnect. Keine Validierung von questionId/selectedOption vor saveAnswer. Keine Transaktion bei resetSessionToLobbyForReplay (mehrere DELETEs/UPDATEs). Kein Timeout bei langsamen DB-Abfragen. Fehlende Logs für Debugging. 409/400 oft generisch.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="5">
+        <div class="question-text">98. Erkläre die Abhängigkeiten zwischen LobbyService und ControllersRepository.</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>LobbyService braucht ControllersRepository für unbindControllerForUser beim removePlayerFromLobby (Austreten). LobbyService ruft zuerst unbind auf (best-effort), dann lobbyRepository.removePlayerFromLobby. Bei Fehler von unbind wird trotzdem removePlayerFromLobby ausgeführt (Spieler soll Lobby verlassen können).</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="5">
+        <div class="question-text">99. Was passiert, wenn zwei Lobbys gleichzeitig existieren (edge case)?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>getLobbySessionId holt "ORDER BY id DESC LIMIT 1" – also die neueste LOBBY-Session. Alte Lobbys können im State LOBBY bleiben. Spieler könnten versehentlich zur falschen Lobby joinen. Typischerweise wird nur eine Lobby aktiv gehalten; ggf. sollte vor create geprüft werden, ob bereits eine existiert.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="5">
+        <div class="question-text">100. Wie funktioniert die Reihenfolge der Fragen (question_index)?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>game_session_questions hat question_index (1, 2, 3, …). fetchRandomQuestions wählt zufällige Fragen, insertSessionQuestions speichert sie mit aufsteigendem question_index. GameStateManager lädt die aktuelle Frage anhand des Index und wechselt nach Evaluation zum nächsten.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="5">
+        <div class="question-text">101. Warum wird Vert.x statt Spring Boot verwendet?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>Vermutlich Projektvorgabe oder Leichtgewichtigkeit. Vert.x: reaktiv, EventLoop-basiert, geringer Footprint, integrierte MQTT-Unterstützung, EventBus für interne Kommunikation. Gut geeignet für IoT/ Echtzeit-Anwendungen mit vielen gleichzeitigen Verbindungen.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="5">
+        <div class="question-text">102. Wie würde man das System um mehrere parallele Spielrunden erweitern?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>1) Lobby-Code: Session-ID statt "die eine" Lobby. 2) game_session_id in allen MQTT-Topics oder als Prefix. 3) GameStateManager pro Session (Map sessionId→State). 4) Frontend: Lobby-Auswahl, Join mit sessionId. 5) Einschränkung: Ein Controller kann nur in einer Session sein.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="5">
+        <div class="question-text">103. Wo und wie wird die Session-ID an die MQTT-Clients kommuniziert?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>Topics sind global (game/state, game/question) – es gibt nur eine aktive Session. sessionId wird ggf. in Payload von game/ended mitgeschickt. Für Multi-Session müsste sessionId im Topic sein (z.B. game/{sessionId}/state). Aktuell: implizit "die aktive Lobby-Session".</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="5">
+        <div class="question-text">104. Welche Sicherheitslücken könnten bestehen?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>1) MQTT ohne Auth: jeder kann subscriben/publishen. 2) Keine Session/Token-Validierung bei manchen Endpoints. 3) RFID-UID könnte gespooft werden. 4) correctOption im Frontend nach Evaluation – OK. 5) SQL Injection: Prepared Statements werden genutzt – gut. 6) CORS/Origin-Checks je nach Deployment.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="5">
+        <div class="question-text">105. Erkläre den Ablauf von game.replay auf dem EventBus.</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>GameController (oder GameStateManager) publiziert game.replay mit sessionId. GameStateManager (oder MqttService) consumer: ruft resetSessionToLobbyForReplay auf, sendet MQTT ready=false an alle Spieler (player/{id}/status), damit Controller/Frontend den Ready-Status zurücksetzen.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="5">
+        <div class="question-text">106. Was passiert, wenn während einer Frage der MQTT-Broker ausfällt?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>Neue Zustandsänderungen (Evaluation, nächste Frage) kommen nicht beim Frontend/Controller an. Antworten könnten über MQTT verloren gehen – Backend empfängt sie nicht. DB- und EventBus-Logik laufen weiter. Nach Reconnect: Clients müssen ggf. state neu abfragen (GET /api/lobby/status, game state) – Reconnect-Logik müsste implementiert sein.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="5">
+        <div class="question-text">107. Wie ist die Beziehung zwischen controllers.id und controllers.controller_id?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p><strong>id</strong>: Primary Key, Auto-Increment, intern. <strong>controller_id</strong>: Eindeutiger String (z.B. UUID für Web-Controller, MAC für Hardware), wird in MQTT-Topics und API verwendet. game_session_players.controller_id ist FK zu controllers.id (nicht controller_id) – Verweis auf die Zeile.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="5">
+        <div class="question-text">108. Welche Änderungen waren nötig, um Offline-Spieler korrekt zu unterstützen?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>1) areConnectedPlayersReady statt areAllPlayersReady für Spielstart. 2) countConnectedPlayersInSession für vorzeitiges Fragen-Ende. 3) computeSessionResults basierend auf game_session_players (alle Spieler, auch ohne Antworten). 4) Frontend: "Offline" statt "Bereit/Nicht bereit" anzeigen. 5) canStartGame im Frontend nur verbundene Spieler prüfen.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="5">
+        <div class="question-text">109. Wie würde man das Projekt um einen "Spectator"-Modus erweitern?</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>1) Neuer User-Typ oder Flag is_spectator. 2) Spectator joinet Lobby, aber wird nicht in game_session_players eingetragen. 3) Subscribt nur game/state, game/question, game/evaluation, game/ended – keine player-Topics. 4) Frontend: Read-Only-Ansicht ohne Antwort-Buttons. 5) Keine Punkte, keine Ready-Pflicht.</p>
+        </div>
+      </article>
+
+      <article class="question" data-stars="5">
+        <div class="question-text">110. Fasse die wichtigsten Unterschiede zwischen main und main-test zusammen (aus dem Git-Diff).</div>
+        <button class="toggle-answer" type="button" aria-expanded="false">Antwort anzeigen</button>
+        <div class="answer" hidden>
+          <p>main-test enthält: Arduino (RFID, OLED, Buttons, NeoPixel, WiFi/MQTT), erweiterte Frontend- und Web-Controller-Logik, Lobby (create/join/leave mit Controller-Unbind), Game (config, start, areConnectedPlayersReady), Controllers (create-web, disconnect), Player-Binding, RFID-Auth, MQTT-Integration, Offline-Spieler-Support, Replay-Logik. main ist die Basis ohne diese Erweiterungen.</p>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <footer>
+    <p>Projekt Group 16 – Quiz-System – Prüfungsfragen</p>
+    <p><button type="button" id="toggle-all">Alle Antworten ein-/ausblenden</button></p>
+  </footer>
+
+  <script>
+    document.querySelectorAll('.toggle-answer').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const answer = btn.nextElementSibling;
+        const isHidden = answer.hidden;
+        answer.hidden = !isHidden;
+        btn.setAttribute('aria-expanded', !isHidden);
+        btn.textContent = isHidden ? 'Antwort ausblenden' : 'Antwort anzeigen';
+      });
+    });
+
+    document.getElementById('toggle-all').addEventListener('click', () => {
+      const answers = document.querySelectorAll('.answer');
+      const anyHidden = Array.from(answers).some(a => a.hidden);
+      answers.forEach(a => { a.hidden = !anyHidden; });
+      document.querySelectorAll('.toggle-answer').forEach(btn => {
+        btn.setAttribute('aria-expanded', anyHidden);
+        btn.textContent = anyHidden ? 'Antwort ausblenden' : 'Antwort anzeigen';
+      });
+    });
+  </script>
+</body>
+</html>

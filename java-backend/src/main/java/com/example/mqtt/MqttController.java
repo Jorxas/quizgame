@@ -65,7 +65,7 @@ public class MqttController {
         this.lobbyService = new LobbyService();
     }
 
-    /* EVENTS empfangen und verarbeiten */
+    /** Registriert EventBus-Consumer für game.state, game.countdown, game.question usw. */
     public void registerEventBusConsumers() {
         this.eventBus.consumer("mqtt.demo.message", msg -> {
             logger.info("Message received via EventBus: 'mqtt.message'");
@@ -174,6 +174,7 @@ public class MqttController {
         });
     }
 
+    /** Registriert MQTT-Subscriptions für controller/register, pong, ready, player/answer. */
     public void registerMqttConsumers() {
 
         mqttClient.publishHandler(message -> {
@@ -308,6 +309,7 @@ public class MqttController {
         });
     }
 
+    /** Verarbeitet RFID-Lookup-Anfrage vom Controller, sendet Benutzername zurück. */
     private void handleRfidLookup(Buffer payload, String topic) {
         try {
             JsonObject body = new JsonObject(payload.toString());
@@ -354,6 +356,7 @@ public class MqttController {
         }
     }
 
+    /** Parst ready-Flag aus dem JSON-Payload. */
     private boolean parseReadyPayload(Buffer payload) {
         try {
             JsonObject json = new JsonObject(payload.toString());

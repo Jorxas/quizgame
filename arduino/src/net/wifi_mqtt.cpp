@@ -33,6 +33,7 @@ static long g_plusXPoints = 0;
 static uint32_t g_plusXShowUntil = 0;
 
 // Helper: find value of key "key":"value" or "key":123 in buf
+/** Liest String-Wert eines JSON-Schlüssels aus dem Buffer. */
 static String extractJsonString(const char* buf, const char* key) {
   String k = String("\"") + key + "\":\"";
   const char* p = strstr(buf, k.c_str());
@@ -42,6 +43,7 @@ static String extractJsonString(const char* buf, const char* key) {
   if (!end || end <= p) return "";
   return String(p).substring(0, (size_t)(end - p));
 }
+/** Liest Long-Wert eines JSON-Schlüssels aus dem Buffer. */
 static long extractJsonLong(const char* buf, const char* key) {
   String k = String("\"") + key + "\":";
   const char* p = strstr(buf, k.c_str());
@@ -49,6 +51,7 @@ static long extractJsonLong(const char* buf, const char* key) {
   p += k.length();
   return atol(p);
 }
+/** Liest Boolean-Wert eines JSON-Schlüssels aus dem Buffer. */
 static bool extractJsonBool(const char* buf, const char* key) {
   String k = String("\"") + key + "\":";
   const char* p = strstr(buf, k.c_str());
@@ -57,6 +60,7 @@ static bool extractJsonBool(const char* buf, const char* key) {
   return (strncmp(p, "true", 4) == 0);
 }
 
+/** MQTT-Callback: verarbeitet game/state, game/question, player/result, controller/status, rfid/reply, ping. */
 static void onMqttMessage(char* topic, uint8_t* payload, unsigned int len) {
   size_t L = strlen(topic);
   if (len > 0 && len < 512) {
@@ -162,6 +166,7 @@ static void onMqttMessage(char* topic, uint8_t* payload, unsigned int len) {
   g_client.publish(pongTopic, "{}");
 }
 
+/** Liefert die MAC-Adresse als String (XX:XX:XX:XX:XX:XX). */
 String macAddressString() {
   uint8_t mac[6];
   WiFi.macAddress(mac);
@@ -173,6 +178,7 @@ String macAddressString() {
   return String(buf);
 }
 
+/** Verbindet mit dem konfigurierten WLAN. */
 bool connectWiFi() {
   if (WiFi.status() == WL_CONNECTED) return true;
 
@@ -185,6 +191,7 @@ bool connectWiFi() {
   return false;
 }
 
+/** Verbindet mit MQTT-Broker und abonniert alle benötigten Topics. */
 bool connectMqtt() {
   if (!connectWiFi()) return false;
 
@@ -213,10 +220,12 @@ bool connectMqtt() {
   return false;
 }
 
+/** Stellt sicher, dass WiFi und MQTT verbunden sind. */
 bool ensureConnected() {
   return connectMqtt();
 }
 
+/** Sendet die MAC-Adresse an das Mac-Topic (für Controller-Registrierung). */
 bool publishMacAddress() {
   if (!ensureConnected()) return false;
   const String mac = macAddressString();
@@ -224,6 +233,7 @@ bool publishMacAddress() {
   return g_client.publish(MQTT_TOPIC_MAC, payload.c_str());
 }
 
+/** Registriert den Hardware-Controller beim Backend per MQTT. */
 bool publishControllerRegister() {
   if (!ensureConnected()) return false;
 
@@ -235,6 +245,7 @@ bool publishControllerRegister() {
   return ok;
 }
 
+/** Ruft Benutzernamen für RFID-UID per MQTT ab (blockierend, Timeout 5s). */
 String rfidLookupUsername(const char* uid) {
   if (!ensureConnected()) return "";
   g_rfidReplyReceived = false;
@@ -251,6 +262,7 @@ String rfidLookupUsername(const char* uid) {
   return g_rfidReplyUsername;
 }
 
+/** Bindet Controller an Spieler und tritt der Lobby bei (HTTP POST). */
 bool rfidBindAndJoin(const char* username) {
   if (!connectWiFi()) return false;
   WiFiClient client;
@@ -303,6 +315,7 @@ bool rfidBindAndJoin(const char* username) {
   return (status == 200);
 }
 
+/** Sendet Ready/Not-ready-Status des Spielers per MQTT. */
 bool publishPlayerReady(const char* username, bool ready) {
   if (!username || !username[0] || !ensureConnected()) return false;
   String topic = String(MQTT_TOPIC_PREFIX) + "player/" + String(username) + "/ready";
@@ -310,14 +323,17 @@ bool publishPlayerReady(const char* username, bool ready) {
   return g_client.publish(topic.c_str(), payload.c_str());
 }
 
+/** Liefert den aktuellen Spielzustand (LOBBY, QUESTION, ENDED). */
 const char* getGameState() {
   return g_gameState.c_str();
 }
 
+/** Liefert die ID der aktuellen Frage. */
 long getCurrentQuestionId() {
   return g_currentQuestionId;
 }
 
+/** Prüft, ob Antworten für die aktuelle Frage gesendet werden dürfen. */
 bool isQuestionReadyToAnswer() {
   if (g_gameState != "QUESTION" || g_currentQuestionId <= 0) return false;
   if (!g_waitingForQuestion) return true;
@@ -330,6 +346,7 @@ bool isQuestionReadyToAnswer() {
   return false;
 }
 
+/** Sendet die Spieler-Antwort (A/B/C/D) per MQTT. */
 bool publishPlayerAnswer(const char* username, long questionId, const char* selectedOption) {
   if (!username || !username[0] || questionId <= 0 || !selectedOption || !ensureConnected()) return false;
   String topic = String(MQTT_TOPIC_PREFIX) + "player/" + String(username) + "/answer";
@@ -337,33 +354,39 @@ bool publishPlayerAnswer(const char* username, long questionId, const char* sele
   return g_client.publish(topic.c_str(), payload.c_str());
 }
 
+/** Setzt den Benutzernamen für die Filterung von player/result. */
 void setBoundUsernameForResult(const char* username) {
   g_boundUsernameForResult = username ? String(username) : "";
 }
 
+/** Setzt den lokalen Ready-Status. */
 void setBoundReady(bool ready) {
   g_boundReady = ready;
 }
 
+/** Liefert den gebundenen Benutzernamen. */
 String getBoundUsername() {
   return g_boundUsernameForResult;
 }
 
+/** Liefert den Ready-Status des gebundenen Spielers. */
 bool getBoundReady() {
   return g_boundReady;
 }
 
+/** Liefert die kumulierte Punktzahl des Spielers. */
 long getTotalScore() {
   return g_totalScore;
 }
 
-// Returns points to show for "+X Pkt" (or 0 if not showing). Call each frame to age out.
+/** Liefert die Punkte für „+X Pkt“-Anzeige (0 wenn abgelaufen). */
 long getPlusXPoints() {
   if (g_plusXPoints > 0 && millis() < g_plusXShowUntil) return g_plusXPoints;
   g_plusXPoints = 0;
   return 0;
 }
 
+/** Fordert den Controller-Status vom Backend an. */
 bool publishRequestStatus() {
   if (!ensureConnected()) return false;
   const String mac = macAddressString();
@@ -373,6 +396,7 @@ bool publishRequestStatus() {
 
 static const uint32_t REQUEST_STATUS_INTERVAL_MS = 5000;
 
+/** Muss regelmäßig aufgerufen werden: MQTT-Loop, Reconnect, periodischer Status-Request. */
 void processMqtt() {
   if (!g_client.connected()) {
     static uint32_t lastAttempt = 0;

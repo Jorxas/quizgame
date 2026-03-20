@@ -24,14 +24,17 @@ public class AuthService {
         authRepository.verifyUser(username, password, resultHandler);
     }
 
+    /** Sucht den Benutzernamen anhand der RFID-Karte. */
     public void lookupByRfid(String rfidUid, Handler<AsyncResult<String>> resultHandler) {
         authRepository.findUsernameByRfidUid(rfidUid, resultHandler);
     }
 
+    /** Liefert die RFID-Karte des angegebenen Benutzers. */
     public void getRfidForUser(String username, Handler<AsyncResult<String>> resultHandler) {
         authRepository.getRfidForUser(username, resultHandler);
     }
 
+    /** Aktualisiert oder entfernt die RFID-Karte des Benutzers. */
     public void updateRfidForUser(String username, String rfidUid, Handler<AsyncResult<Void>> resultHandler) {
         authRepository.updateRfidForUser(username, rfidUid, resultHandler);
     }
