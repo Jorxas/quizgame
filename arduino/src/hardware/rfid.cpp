@@ -1,3 +1,6 @@
+/**
+ * RFID – MFRC522-Leser, Karten-UID auslesen, Login via RFID
+ */
 #include "hardware/rfid.h"
 #include "config.h"
 

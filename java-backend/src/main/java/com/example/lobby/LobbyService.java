@@ -1,5 +1,8 @@
 package com.example.lobby;
 
+/**
+ * Lobby-Service – Spieler hinzufügen/entfernen, Ready-Status, Lobby-Status.
+ */
 import com.example.controllers.ControllersRepository;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;

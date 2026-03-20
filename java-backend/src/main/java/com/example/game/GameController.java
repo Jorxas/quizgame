@@ -1,5 +1,8 @@
 package com.example.game;
 
+/**
+ * Game-Controller – Spiel starten, Countdown, Fragen, Auswertung, Replay.
+ */
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

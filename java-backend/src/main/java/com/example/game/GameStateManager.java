@@ -1,5 +1,9 @@
 package com.example.game;
 
+/**
+ * GameStateManager – Singleton für Spielzustände (LOBBY, COUNTDOWN, QUESTION, EVALUATION, ENDED).
+ * Steuert Countdown, Frage-Ablauf, MQTT-Publikation.
+ */
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;

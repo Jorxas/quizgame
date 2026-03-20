@@ -1,5 +1,8 @@
 package com.example.controllers;
 
+/**
+ * Controllers-Repository – DB-Zugriff auf Controller-Tabelle.
+ */
 import com.example.database.DatabaseClient;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;

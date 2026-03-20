@@ -1,5 +1,8 @@
 package com.example.game;
 
+/**
+ * Game-Repository – DB-Zugriff für Sessions, Fragen, Antworten, Ergebnisse.
+ */
 import com.example.database.DatabaseClient;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;

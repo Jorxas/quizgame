@@ -1,5 +1,9 @@
 package com.example;
 
+/**
+ * Haupt-Verticle – startet JDBC-Pool, GameStateManager, MQTT- und HTTP-Verticles.
+ * Registriert alle REST-Controller (Auth, Controllers, Lobby, Player, Game, Highscores, Object).
+ */
 import java.util.List;
 
 import org.slf4j.Logger;

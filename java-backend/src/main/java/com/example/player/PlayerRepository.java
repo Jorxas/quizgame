@@ -1,5 +1,8 @@
 package com.example.player;
 
+/**
+ * Player-Repository – DB-Zugriff für Controller-Bindung (assigned_user_id).
+ */
 import com.example.database.DatabaseClient;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;

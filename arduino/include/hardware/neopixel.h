@@ -1,5 +1,8 @@
 #pragma once
 
+/**
+ * hardware/neopixel.h – LED-Strip, begin, setAll, off, flash
+ */
 #include <Arduino.h>
 #include <Adafruit_NeoPixel.h>
 

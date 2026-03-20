@@ -1,5 +1,8 @@
 package com.example.auth;
 
+/**
+ * Auth-Repository – Datenbankzugriff für Benutzer und RFID.
+ */
 import com.example.database.DatabaseClient;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;

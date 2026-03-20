@@ -1,5 +1,8 @@
 package com.example.lobby;
 
+/**
+ * Lobby-Controller – Lobby erstellen, Status, Join, Leave.
+ */
 import com.example.http.HttpController;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;

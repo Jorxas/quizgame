@@ -1,3 +1,4 @@
+/* Umgebungsvariablen für MQTT-Broker und Nachrichten-Präfix */
 window.__ENV__ = {
   MQTT_BROKER_URL:      "iti-mqtt.mni.thm.de",
   MQTT_BROKER_PORT:     "9001",

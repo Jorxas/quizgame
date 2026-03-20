@@ -1,5 +1,8 @@
 package com.example.highscores;
 
+/**
+ * Highscores-Repository – DB-Zugriff auf highscores-Tabelle.
+ */
 import com.example.database.DatabaseClient;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;

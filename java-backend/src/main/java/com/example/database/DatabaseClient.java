@@ -1,5 +1,8 @@
 package com.example.database;
 
+/**
+ * DatabaseClient – JDBC-Pool für MariaDB, Singleton.
+ */
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

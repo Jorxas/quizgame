@@ -1,5 +1,8 @@
 #pragma once
 
+/**
+ * hardware/rfid.h – MFRC522 RFID-Leser, UID, service, hasNewScan
+ */
 #include <Arduino.h>
 #include <SPI.h>
 #include <MFRC522.h>

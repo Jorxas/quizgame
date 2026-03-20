@@ -1,3 +1,6 @@
+/**
+ * Buttons – Tasten A/B/C/D, Debounce, Pullup/Active-Low
+ */
 #include "hardware/buttons.h"
 #include "config.h"
 

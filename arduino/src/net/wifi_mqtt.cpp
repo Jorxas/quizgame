@@ -1,3 +1,6 @@
+/**
+ * WiFi + MQTT – Verbindung zum Broker, Register, Ready, Antworten, RFID-Lookup
+ */
 #include "net/wifi_mqtt.h"
 #include "config.h"
 #include "secrets.h"

@@ -1,5 +1,8 @@
 package com.example.highscores;
 
+/**
+ * Highscores-Controller – Bestenliste pro Rundenlänge (5/10/20 Fragen).
+ */
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

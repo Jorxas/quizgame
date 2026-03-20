@@ -1,3 +1,6 @@
+/**
+ * OLED – SH1106-Display: THM-Logo, RFID-Willkommen/Fehler, Spieler-Status, Punkte
+ */
 #include "hardware/oled.h"
 #include "config.h"
 #include "thm_logo.h"
