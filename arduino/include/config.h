@@ -1,5 +1,8 @@
 #pragma once
 
+/**
+ * config.h – Pin-Belegung, Hardware-Parameter, Debounce, OLED
+ */
 #include <Arduino.h>
 
 // =======================
@@ -16,7 +19,7 @@ static constexpr uint8_t PIN_BTN_RED    = D5;
 static constexpr uint8_t PIN_BTN_YELLOW = D6;
 static constexpr uint8_t PIN_BTN_BLUE   = D7;
 
-// Answer buttons: A=Bleu, B=Vert, C=Jaune, D=Rouge
+// Antwort-Tasten: A=Blau, B=Grün, C=Gelb, D=Rot
 static constexpr uint8_t PIN_BTN_ANSWER_A = D7;  // BLUE
 static constexpr uint8_t PIN_BTN_ANSWER_B = D4;  // GREEN
 static constexpr uint8_t PIN_BTN_ANSWER_C = D6;  // YELLOW

@@ -1,3 +1,7 @@
+/**
+ * Hardware-Controller – Hauptprogramm
+ * Buttons (A–D, Ready/Not-Ready), RFID-Login, MQTT-Kommunikation, OLED-Anzeige
+ */
 #include <Arduino.h>
 #include <string.h>
 
@@ -25,7 +29,7 @@ static void handleButtons() {
   bool btnYellow = hw::buttons::isPressedDebounced(PIN_BTN_YELLOW);// ANSWER_C
   bool btnRed = hw::buttons::isPressedDebounced(PIN_BTN_RED);      // ANSWER_D
 
-  // In QUESTION phase: A=Bleu, B=Vert, C=Jaune, D=Rouge (one answer per question)
+  // In QUESTION-Phase: Blau=A, Grün=B, Gelb=C, Rot=D (eine Antwort pro Frage)
   if (boundUsername.length() > 0 && inQuestion) {
     if (btnBlue) {
       if (net::wifi_mqtt::publishPlayerAnswer(boundUsername.c_str(), currentQ, "A")) {
