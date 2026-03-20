@@ -269,7 +269,7 @@ function loadHighscores(mode) {
       list.forEach(function (entry, index) {
         var rank = index + 1;
         var tr = document.createElement("tr");
-        var score = entry.score != null ? Math.round(entry.score) : 0;
+        var score = entry.score != null ? Number(entry.score) : 0;
         var date = entry.created_at || "";
 
         if (date.length > 19) date = date.substring(0, 19).replace("T", " ");
