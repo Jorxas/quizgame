@@ -1,4 +1,4 @@
--- ====================================================
+ -- ====================================================
 -- GEN1002 Informatik-Projekt - WiSe25/26 - Czekansky
 -- 13-seed-game-data.sql
 -- Demo-Daten für Game Sessions, Answers, Results
@@ -88,10 +88,9 @@ INSERT IGNORE INTO game_session_players (game_session_id, user_id, controller_id
 
 -- Session 4 (2 Spieler, aktiv)
 (4, 2, NULL, 1, DATE_SUB(NOW(), INTERVAL 10 MINUTE)),
-(4, 3, NULL, 1, DATE_SUB(NOW(), INTERVAL 10 MINUTE) + INTERVAL 8 SECOND),
+(4, 3, NULL, 1, DATE_SUB(NOW(), INTERVAL 10 MINUTE) + INTERVAL 8 SECOND);
 
--- Session 5 (1 Spieler, Lobby)
-(5, 4, NULL, 1, NOW());
+-- Session 5 (Lobby) – Diana entfernt, leere Lobby
 
 -- ============================================
 -- GAME SESSION QUESTIONS
@@ -355,10 +354,16 @@ VALUES
 INSERT IGNORE INTO controllers 
 (id, controller_id, controller_type, status, last_seen_at, assigned_user_id, created_at, updated_at)
 VALUES
-(1, '13:23:13:23:13:23', 'HARDWARE', 'FREE', NOW(), NULL, NOW(), NOW()),
+(1, '13:23:13:23:13:23', 'HARDWARE', 'OFFLINE', NOW(), NULL, NOW(), NOW()),
 (2, '42:42:42:42:42:42', 'HARDWARE', 'OFFLINE', DATE_SUB(NOW(), INTERVAL 1 HOUR), NULL, DATE_SUB(NOW(), INTERVAL 3 DAY), DATE_SUB(NOW(), INTERVAL 1 HOUR)),
-(3, '123:ABC:DEF', 'WEB', 'FREE', NOW(), NULL, NOW(), NOW()),
+(3, '123:ABC:DEF', 'WEB', 'OFFLINE', NOW(), NULL, NOW(), NOW()),
 (4, 'MNO:456:XYZ', 'WEB', 'ASSIGNED', NOW(), NULL, NOW(), NOW());
+
+-- ============================================
+-- CLEANUP: Test-Controller aus Wahl entfernen, Diana aus Lobby
+-- ============================================
+UPDATE controllers SET status = 'OFFLINE' WHERE id IN (1, 3);
+DELETE FROM game_session_players WHERE game_session_id = 5 AND user_id = 4;
 
 -- ============================================
 -- VERIFIKATION
