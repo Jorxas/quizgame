@@ -8,6 +8,7 @@ static bool g_readerDetected = false;
 static uint32_t g_lastDetectCheckMs = 0;
 static uint32_t g_lastReadMs = 0;
 static String g_lastUid;
+static bool g_newScan = false;
 
 void begin() {
 
@@ -16,11 +17,7 @@ void begin() {
   pinMode(PIN_RFID_CS, OUTPUT);
   g_rfid.PCD_Init();
 
-  if (detectReaderOnce()) {
-    g_readerDetected = true;
-  } else {
-    g_readerDetected = false;
-  }
+  g_readerDetected = detectReaderOnce();
 }
 
 void service() {
@@ -36,10 +33,7 @@ void service() {
     g_readerDetected = true;
     g_rfid.PCD_Init();
   }
-
-  if (g_readerDetected && !detectedNow) {
-    g_readerDetected = false;
-  }
+  if (g_readerDetected && !detectedNow) g_readerDetected = false;
 
   // If reader not available, return.
   if (!g_readerDetected) return;
@@ -47,9 +41,10 @@ void service() {
   // If no card available, return.
   if (!(g_rfid.PICC_IsNewCardPresent() && g_rfid.PICC_ReadCardSerial())) return;
 
-  const String currentUid = uidToString(g_rfid.uid);
-  g_lastUid = currentUid;
+  g_lastUid = uidToString(g_rfid.uid);
+  SAFE_PRINTLN("RFID tag UID: " + g_lastUid);
   g_lastReadMs = now;
+  g_newScan = true;
 
   g_rfid.PICC_HaltA();
   g_rfid.PCD_StopCrypto1();
@@ -61,6 +56,14 @@ bool isReaderDetected() {
 
 const String& lastUid() {
   return g_lastUid;
+}
+
+bool hasNewScan() {
+  return g_newScan;
+}
+
+void consumeNewScan() {
+  g_newScan = false;
 }
 
 bool detectReaderOnce() {

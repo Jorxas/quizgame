@@ -18,6 +18,10 @@ bool isReaderDetected();
 // Returns the last read UID as HEX-string (e.g. "04A1...").
 const String& lastUid();
 
+// True if a new card was read since last consume. Call consumeNewScan() to clear.
+bool hasNewScan();
+void consumeNewScan();
+
 // Helper to convert a uid to a HEX-string.
 String uidToString(const MFRC522::Uid &uid);
 

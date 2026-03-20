@@ -1,24 +1,163 @@
 #include "net/wifi_mqtt.h"
 #include "config.h"
 #include "secrets.h"
-#include "hardware/oled.h"
-#include <ArduinoJson.h>
+#include <string.h>
 
 namespace net::wifi_mqtt {
 
 static WiFiClient g_netClient;
 static PubSubClient g_client(g_netClient);
-static char g_payloadBuf[384];
-static uint32_t g_lastRequestStatus = 0;
 
-// Display state (same as web controller)
-static char g_controllerId[24] = "";
-static char g_playerId[32] = "";
-static bool g_ready = false;
-static float g_score = 0.0f;
-static char g_gameState[16] = "LOBBY";
-static char g_subscribedPlayerId[32] = "";
-static uint32_t g_lastOledUpdate = 0;
+// RFID MQTT reply: set when we receive controller/{mac}/rfid/reply
+static String g_rfidReplyUsername;
+static bool g_rfidReplyReceived = false;
+
+// Game state from MQTT (for answer buttons)
+static String g_gameState;
+static long g_currentQuestionId = 0;
+// True after game/state QUESTION until game/question arrives (backend sends state before question)
+static bool g_waitingForQuestion = false;
+static uint32_t g_questionStateTimestamp = 0;
+
+// Bound username for filtering player/result (set from main after RFID login)
+static String g_boundUsernameForResult;
+// Ready status from controller/status (or set when we publish ready)
+static bool g_boundReady = false;
+// Total score (accumulated from player/result, reset on LOBBY/ENDED)
+static long g_totalScore = 0;
+// Brief "+X Pkt" display: points to show, 0 = don't show
+static long g_plusXPoints = 0;
+static uint32_t g_plusXShowUntil = 0;
+
+// Helper: find value of key "key":"value" or "key":123 in buf
+static String extractJsonString(const char* buf, const char* key) {
+  String k = String("\"") + key + "\":\"";
+  const char* p = strstr(buf, k.c_str());
+  if (!p) return "";
+  p += k.length();
+  const char* end = strchr(p, '"');
+  if (!end || end <= p) return "";
+  return String(p).substring(0, (size_t)(end - p));
+}
+static long extractJsonLong(const char* buf, const char* key) {
+  String k = String("\"") + key + "\":";
+  const char* p = strstr(buf, k.c_str());
+  if (!p) return -1;
+  p += k.length();
+  return atol(p);
+}
+static bool extractJsonBool(const char* buf, const char* key) {
+  String k = String("\"") + key + "\":";
+  const char* p = strstr(buf, k.c_str());
+  if (!p) return false;
+  p += k.length();
+  return (strncmp(p, "true", 4) == 0);
+}
+
+static void onMqttMessage(char* topic, uint8_t* payload, unsigned int len) {
+  size_t L = strlen(topic);
+  if (len > 0 && len < 512) {
+    char buf[512];
+    memcpy(buf, payload, len);
+    buf[len] = '\0';
+    // Game state (internal only: enable answer buttons when QUESTION)
+    if (strstr(topic, "game/state")) {
+      String state = extractJsonString(buf, "state");
+      if (state.length() > 0) {
+        g_gameState = state;
+        if (state == "LOBBY") g_totalScore = 0;  // reset for new round
+        if (state != "QUESTION") {
+          g_waitingForQuestion = true;
+        } else {
+          g_questionStateTimestamp = millis();
+        }
+      }
+      return;
+    }
+    // Question: only need questionId to send answers (no display like web controller)
+    if (strstr(topic, "game/question")) {
+      long qId = extractJsonLong(buf, "questionId");
+      g_currentQuestionId = qId;
+      g_waitingForQuestion = false;
+      return;
+    }
+    // Game ended
+    if (strstr(topic, "game/ended")) {
+      g_gameState = "ENDED";
+      g_totalScore = 0;  // reset for next game
+      return;
+    }
+    // Per-answer result for our player (player/{username}/result)
+    if (strstr(topic, "/result")) {
+      const char* prefix = "player/";
+      const char* p = strstr(topic, prefix);
+      if (p && g_boundUsernameForResult.length() > 0) {
+        p += strlen(prefix);
+        const char* end = strchr(p, '/');
+        if (end && end > p) {
+          String topicUser = String(p).substring(0, (size_t)(end - p));
+          if (topicUser == g_boundUsernameForResult) {
+            bool correct = (strstr(buf, "\"correct\":true") != nullptr);
+            long points = extractJsonLong(buf, "points");
+            g_totalScore += points;
+            if (points > 0) {
+              g_plusXPoints = points;
+              g_plusXShowUntil = millis() + 1500;  // show "+X Pkt" for 1.5s
+            }
+            SAFE_PRINTLN("[Result] " + (correct ? String("Correct") : String("Wrong")) + ", +" + String((long)points) + " Pkt, total: " + String((long)g_totalScore));
+          }
+        }
+      }
+      return;
+    }
+  }
+
+  // Handle controller/status (playerId assigned from web; update bound user + ready)
+  if (L >= 7 && strcmp(topic + L - 7, "/status") == 0 && strstr(topic, "controller/") != nullptr) {
+    if (len > 0 && len < 256) {
+      char buf[256];
+      memcpy(buf, payload, len);
+      buf[len] = '\0';
+      String playerId = extractJsonString(buf, "playerId");
+      bool ready = extractJsonBool(buf, "ready");
+      bool changed = (playerId != g_boundUsernameForResult || ready != g_boundReady);
+      g_boundUsernameForResult = playerId;
+      g_boundReady = ready;
+      if (changed && playerId.length() > 0) {
+        SAFE_PRINTLN("[Status] bound: " + playerId + ", ready=" + String(ready ? "true" : "false"));
+      }
+    }
+    return;
+  }
+
+  // Handle RFID lookup reply
+  if (L >= 12 && strcmp(topic + L - 11, "/rfid/reply") == 0) {
+    g_rfidReplyUsername = "";
+    if (len > 0 && len < 256) {
+      char buf[256];
+      memcpy(buf, payload, len);
+      buf[len] = '\0';
+      const char* key = "\"username\":\"";
+      const char* p = strstr(buf, key);
+      if (p) {
+        p += strlen(key);
+        const char* end = strchr(p, '"');
+        if (end && end > p) {
+          g_rfidReplyUsername = String(p).substring(0, (size_t)(end - p));
+        }
+      }
+    }
+    g_rfidReplyReceived = true;
+    return;
+  }
+  // Handle ping -> pong
+  if (L < 5 || strcmp(topic + L - 4, "ping") != 0) return;
+  char pongTopic[64];
+  strncpy(pongTopic, topic, 63);
+  pongTopic[63] = '\0';
+  pongTopic[L - 3] = 'o';  // ping -> pong
+  g_client.publish(pongTopic, "{}");
+}
 
 String macAddressString() {
   uint8_t mac[6];
@@ -37,193 +176,37 @@ bool connectWiFi() {
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
   int retries = 40; // ~20s
-  while (WiFi.status() != WL_CONNECTED && retries-- > 0) {
-    delay(500);
-    if (retries % 8 == 0) { SAFE_PRINTLN("WiFi..."); }
-  }
+  while (WiFi.status() != WL_CONNECTED && retries-- > 0) delay(500);
 
-  if (WiFi.status() == WL_CONNECTED) {
-    SAFE_PRINTLN("WiFi OK");
-    return true;
-  }
-  SAFE_PRINTLN("WiFi fail");
+  if (WiFi.status() == WL_CONNECTED) return true;
   return false;
-}
-
-static void refreshControllerDisplay() {
-  uint32_t now = millis();
-  if (now - g_lastOledUpdate < OLED_MIN_UPDATE_INTERVAL_MS) return;
-  g_lastOledUpdate = now;
-  hw::oled::showControllerInfo(g_controllerId, g_playerId, g_ready, g_score);
-}
-
-static void subscribePlayerTopics(const char* playerId) {
-  if (!playerId || !playerId[0]) return;
-  if (strcmp(playerId, g_subscribedPlayerId) == 0) return;
-
-  // Unsubscribe from old player
-  if (g_subscribedPlayerId[0]) {
-    String oldStatus = String(MQTT_PREFIX) + "player/" + g_subscribedPlayerId + "/status";
-    String oldResult = String(MQTT_PREFIX) + "player/" + g_subscribedPlayerId + "/result";
-    g_client.unsubscribe(oldStatus.c_str());
-    g_client.unsubscribe(oldResult.c_str());
-  }
-
-  strncpy(g_subscribedPlayerId, playerId, sizeof(g_subscribedPlayerId) - 1);
-  g_subscribedPlayerId[sizeof(g_subscribedPlayerId) - 1] = '\0';
-
-  String statusTopic = String(MQTT_PREFIX) + "player/" + playerId + "/status";
-  String resultTopic = String(MQTT_PREFIX) + "player/" + playerId + "/result";
-  g_client.subscribe(statusTopic.c_str());
-  g_client.subscribe(resultTopic.c_str());
-}
-
-static void mqttCallback(char* topic, byte* payload, unsigned int length) {
-  if (length >= sizeof(g_payloadBuf)) length = sizeof(g_payloadBuf) - 1;
-  memcpy(g_payloadBuf, payload, length);
-  g_payloadBuf[length] = '\0';
-
-  const String mac = macAddressString();
-  String statusTopic = String(MQTT_PREFIX) + "controller/" + mac + "/status";
-
-  // controller/{mac}/status -> playerId, ready
-  if (String(topic) == statusTopic) {
-    StaticJsonDocument<256> doc;
-    if (!deserializeJson(doc, g_payloadBuf)) {
-      const char* pid = doc["playerId"].as<const char*>();
-      bool ready = doc["ready"].as<bool>();
-      if (pid) strncpy(g_playerId, pid, sizeof(g_playerId) - 1);
-      else g_playerId[0] = '\0';
-      g_playerId[sizeof(g_playerId) - 1] = '\0';
-      g_ready = ready;
-      subscribePlayerTopics(g_playerId[0] ? g_playerId : nullptr);
-      refreshControllerDisplay();
-    }
-    return;
-  }
-
-  // player/{id}/status -> ready update
-  if (String(topic).startsWith(String(MQTT_PREFIX) + "player/") && String(topic).endsWith("/status")) {
-    StaticJsonDocument<128> doc;
-    if (!deserializeJson(doc, g_payloadBuf)) {
-      if (doc.containsKey("ready")) {
-        g_ready = doc["ready"].as<bool>();
-      } else {
-        const char* st = doc["status"].as<const char*>();
-        g_ready = (st && strcmp(st, "READY") == 0);
-      }
-      refreshControllerDisplay();
-    }
-    return;
-  }
-
-  // player/{id}/result -> correct, points, correctOption
-  if (String(topic).startsWith(String(MQTT_PREFIX) + "player/") && String(topic).endsWith("/result")) {
-    StaticJsonDocument<256> doc;
-    if (!deserializeJson(doc, g_payloadBuf)) {
-      bool correct = doc["correct"].as<bool>();
-      float pts = doc["points"].as<float>();
-      const char* opt = doc["correctOption"].as<const char*>();
-      if (correct) g_score += pts;
-      hw::oled::showResult(correct, pts, opt ? opt : "");
-      // Return to controller info quickly so score/name/ready stay visible.
-      delay(900);
-      refreshControllerDisplay();
-    }
-    return;
-  }
-
-  // game/state
-  if (String(topic) == String(MQTT_PREFIX) + "game/state") {
-    StaticJsonDocument<128> doc;
-    if (!deserializeJson(doc, g_payloadBuf)) {
-      const char* s = doc["state"].as<const char*>();
-      if (s) {
-        strncpy(g_gameState, s, sizeof(g_gameState) - 1);
-        g_gameState[sizeof(g_gameState) - 1] = '\0';
-          refreshControllerDisplay();
-      }
-    }
-    return;
-  }
-
-  // game/question
-  if (String(topic) == String(MQTT_PREFIX) + "game/question") {
-    hw::oled::showAnswerPrompt();
-    return;
-  }
-
-  // game/evaluation
-  if (String(topic) == String(MQTT_PREFIX) + "game/evaluation") {
-    hw::oled::showEvaluation();
-    return;
-  }
-
-  // game/ended
-  if (String(topic) == String(MQTT_PREFIX) + "game/ended") {
-    float finalScore = g_score;
-    g_score = 0.0f;
-    strcpy(g_gameState, "LOBBY");
-    hw::oled::showEnded(finalScore);
-    return;
-  }
-
-  // controller/{mac}/ping -> reply pong
-  String pingTopic = String(MQTT_PREFIX) + "controller/" + mac + "/ping";
-  if (String(topic) == pingTopic) {
-    String pongTopic = String(MQTT_PREFIX) + "controller/" + mac + "/pong";
-    String pongPayload = "{\"action\":\"pong\",\"controllerId\":\"" + mac + "\",\"ts\":" + String(millis()) + "}";
-    g_client.publish(pongTopic.c_str(), pongPayload.c_str());
-    return;
-  }
 }
 
 bool connectMqtt() {
   if (!connectWiFi()) return false;
 
+  g_client.setBufferSize(1024);
   g_client.setServer(MQTT_HOST, MQTT_PORT);
-  g_client.setCallback(mqttCallback);
   if (g_client.connected()) return true;
 
-  SAFE_PRINTLN("MQTT connect...");
-
   const String clientId = String("uno-") + macAddressString();
-  const String mac = macAddressString();
 
   for (int i = 0; i < 3; i++) {
     if (g_client.connect(clientId.c_str(), MQTT_USER, MQTT_PASS)) {
-      SAFE_PRINTLN("MQTT OK");
-
-      strncpy(g_controllerId, mac.c_str(), sizeof(g_controllerId) - 1);
-      g_controllerId[sizeof(g_controllerId) - 1] = '\0';
-
-      // Register like web controller
-      String regTopic = String(MQTT_PREFIX) + "controller/" + mac + "/register";
-      String regPayload = "{\"action\":\"register\",\"controllerId\":\"" + mac + "\"}";
-      g_client.publish(regTopic.c_str(), regPayload.c_str());
-
-      // Subscribe to controller topics
-      g_client.subscribe((String(MQTT_PREFIX) + "controller/" + mac + "/ping").c_str());
-      g_client.subscribe((String(MQTT_PREFIX) + "controller/" + mac + "/status").c_str());
-
-      // Subscribe to game topics
-      g_client.subscribe((String(MQTT_PREFIX) + "game/state").c_str());
-      g_client.subscribe((String(MQTT_PREFIX) + "game/question").c_str());
-      g_client.subscribe((String(MQTT_PREFIX) + "game/evaluation").c_str());
-      g_client.subscribe((String(MQTT_PREFIX) + "game/ended").c_str());
-
-      // Request status (backend will publish controller/status)
-      String reqTopic = String(MQTT_PREFIX) + "controller/" + mac + "/request-status";
-      g_client.publish(reqTopic.c_str(), "{}");
-
-      refreshControllerDisplay();
+      g_client.setCallback(onMqttMessage);
+      String mac = macAddressString();
+      g_client.subscribe((String(MQTT_TOPIC_PREFIX) + "controller/" + mac + "/ping").c_str());
+      g_client.subscribe((String(MQTT_TOPIC_PREFIX) + "controller/" + mac + "/status").c_str());
+      g_client.subscribe((String(MQTT_TOPIC_PREFIX) + "controller/" + mac + "/rfid/reply").c_str());
+      g_client.subscribe((String(MQTT_TOPIC_PREFIX) + "game/state").c_str());
+      g_client.subscribe((String(MQTT_TOPIC_PREFIX) + "game/question").c_str());
+      g_client.subscribe((String(MQTT_TOPIC_PREFIX) + "game/ended").c_str());
+      g_client.subscribe((String(MQTT_TOPIC_PREFIX) + "player/+/result").c_str());
       return true;
     }
 
-    SAFE_PRINTLN("MQTT retry...");
     delay(2000);
   }
-  SAFE_PRINTLN("MQTT fail");
   return false;
 }
 
@@ -238,27 +221,172 @@ bool publishMacAddress() {
   return g_client.publish(MQTT_TOPIC_MAC, payload.c_str());
 }
 
-void loop() {
-  if (!g_client.connected()) {
-    static uint32_t lastReconnect = 0;
-    uint32_t now = millis();
-    if (now - lastReconnect > 5000) {
-      lastReconnect = now;
-      if (connectMqtt()) {
-        SAFE_PRINTLN("MQTT recon");
-      }
-    }
-  } else {
-    g_client.loop();
+bool publishControllerRegister() {
+  if (!ensureConnected()) return false;
 
-    // Request status every 5s (like web controller)
-    uint32_t now = millis();
-    if (now - g_lastRequestStatus > 5000) {
-      g_lastRequestStatus = now;
-      const String mac = macAddressString();
-      String reqTopic = String(MQTT_PREFIX) + "controller/" + mac + "/request-status";
-      g_client.publish(reqTopic.c_str(), "{}");
+  const String mac = macAddressString();
+  const String topic = String(MQTT_TOPIC_PREFIX) + "controller/" + mac + "/register";
+  static const char payload[] = "{\"controllerType\":\"HARDWARE\"}";
+
+  const bool ok = g_client.publish(topic.c_str(), payload);
+  return ok;
+}
+
+String rfidLookupUsername(const char* uid) {
+  if (!ensureConnected()) return "";
+  g_rfidReplyReceived = false;
+  g_rfidReplyUsername = "";
+  String mac = macAddressString();
+  String payload = String("{\"uid\":\"") + uid + "\",\"mac\":\"" + mac + "\"}";
+  bool ok = g_client.publish((String(MQTT_TOPIC_PREFIX) + "auth/rfid/lookup").c_str(), payload.c_str());
+  if (!ok) return "";
+  uint32_t start = millis();
+  while (!g_rfidReplyReceived && (millis() - start < 5000)) {
+    g_client.loop();
+    delay(10);
+  }
+  return g_rfidReplyUsername;
+}
+
+bool rfidBindAndJoin(const char* username) {
+  if (!connectWiFi()) return false;
+  WiFiClient client;
+  if (!client.connect(BACKEND_HOST, BACKEND_PORT)) return false;
+  String mac = macAddressString();
+  String body = String("{\"username\":\"") + username + "\",\"controllerId\":\"" + mac + "\",\"controllerType\":\"HARDWARE\"}";
+  client.println("POST /api/players/bind HTTP/1.0");
+  client.print("Host: ");
+  client.println(BACKEND_HOST);
+  client.print("Content-Length: ");
+  client.println(body.length());
+  client.println("Content-Type: application/json");
+  client.println();
+  client.print(body);
+  uint32_t t = millis();
+  while (!client.available() && millis() - t < 3000) delay(10);
+  int status = 0;
+  while (client.available()) {
+    String line = client.readStringUntil('\n');
+    if (line.startsWith("HTTP/1")) {
+      int sp = line.indexOf(' ');
+      if (sp >= 0) status = line.substring(sp + 1, sp + 4).toInt();
     }
+    if (line == "\r") break;
+  }
+  client.stop();
+  if (status != 200) return false;
+  if (!client.connect(BACKEND_HOST, BACKEND_PORT)) return false;
+  body = String("{\"username\":\"") + username + "\"}";
+  client.println("POST /api/lobby/join HTTP/1.0");
+  client.print("Host: ");
+  client.println(BACKEND_HOST);
+  client.print("Content-Length: ");
+  client.println(body.length());
+  client.println("Content-Type: application/json");
+  client.println();
+  client.print(body);
+  t = millis();
+  while (!client.available() && millis() - t < 3000) delay(10);
+  status = 0;
+  while (client.available()) {
+    String line = client.readStringUntil('\n');
+    if (line.startsWith("HTTP/1")) {
+      int sp = line.indexOf(' ');
+      if (sp >= 0) status = line.substring(sp + 1, sp + 4).toInt();
+    }
+    if (line == "\r") break;
+  }
+  client.stop();
+  return (status == 200);
+}
+
+bool publishPlayerReady(const char* username, bool ready) {
+  if (!username || !username[0] || !ensureConnected()) return false;
+  String topic = String(MQTT_TOPIC_PREFIX) + "player/" + String(username) + "/ready";
+  String payload = String("{\"ready\":") + (ready ? "true" : "false") + ",\"action\":\"" + (ready ? "ready" : "not-ready") + "\"}";
+  return g_client.publish(topic.c_str(), payload.c_str());
+}
+
+const char* getGameState() {
+  return g_gameState.c_str();
+}
+
+long getCurrentQuestionId() {
+  return g_currentQuestionId;
+}
+
+bool isQuestionReadyToAnswer() {
+  if (g_gameState != "QUESTION" || g_currentQuestionId <= 0) return false;
+  if (!g_waitingForQuestion) return true;
+  // Fallback: if game/question was dropped (buffer too small), allow after 2s
+  if (g_questionStateTimestamp > 0 && (millis() - g_questionStateTimestamp > 2000)) {
+    g_waitingForQuestion = false;
+    SAFE_PRINTLN("[Game] Timeout waiting for question payload, allowing answers");
+    return true;
+  }
+  return false;
+}
+
+bool publishPlayerAnswer(const char* username, long questionId, const char* selectedOption) {
+  if (!username || !username[0] || questionId <= 0 || !selectedOption || !ensureConnected()) return false;
+  String topic = String(MQTT_TOPIC_PREFIX) + "player/" + String(username) + "/answer";
+  String payload = String("{\"questionId\":") + String((long)questionId) + ",\"selectedOption\":\"" + String(selectedOption) + "\"}";
+  return g_client.publish(topic.c_str(), payload.c_str());
+}
+
+void setBoundUsernameForResult(const char* username) {
+  g_boundUsernameForResult = username ? String(username) : "";
+}
+
+void setBoundReady(bool ready) {
+  g_boundReady = ready;
+}
+
+String getBoundUsername() {
+  return g_boundUsernameForResult;
+}
+
+bool getBoundReady() {
+  return g_boundReady;
+}
+
+long getTotalScore() {
+  return g_totalScore;
+}
+
+// Returns points to show for "+X Pkt" (or 0 if not showing). Call each frame to age out.
+long getPlusXPoints() {
+  if (g_plusXPoints > 0 && millis() < g_plusXShowUntil) return g_plusXPoints;
+  g_plusXPoints = 0;
+  return 0;
+}
+
+bool publishRequestStatus() {
+  if (!ensureConnected()) return false;
+  const String mac = macAddressString();
+  const String topic = String(MQTT_TOPIC_PREFIX) + "controller/" + mac + "/request-status";
+  return g_client.publish(topic.c_str(), "{}");
+}
+
+static const uint32_t REQUEST_STATUS_INTERVAL_MS = 5000;
+
+void processMqtt() {
+  if (!g_client.connected()) {
+    static uint32_t lastAttempt = 0;
+    uint32_t now = millis();
+    if (now - lastAttempt >= MQTT_RECONNECT_INTERVAL_MS) {
+      lastAttempt = now;
+      if (connectMqtt()) publishControllerRegister();
+    }
+    return;
+  }
+  g_client.loop();
+  // Request controller status periodically (backend replies with playerId when bound from web)
+  static uint32_t lastRequestStatus = 0;
+  uint32_t now = millis();
+  if (now - lastRequestStatus >= REQUEST_STATUS_INTERVAL_MS) {
+    lastRequestStatus = now;
+    publishRequestStatus();
   }
 }
 
